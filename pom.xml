@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.viceversatech</groupId>
+	<artifactId>RDFBeans</artifactId>
+	<packaging>jar</packaging>
+	<version>2.2-SNAPSHOT</version>
+	<name>RDFBeans</name>
+	<description>
+	  Java-RDF databinding framework
+	</description>
+	<url>http://rdfbeans.sourceforge.net</url>
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<id>alexeya</id>
+			<name>Alex Alishevskikh</name>
+			<email>alex (at) viceversatech (dot) com</email>
+			<url>http://cyberborean.org</url>
+			<organization>ViceVersa Technologies</organization>
+			<organizationUrl>http://www.viceversatech.com</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+			<timezone>+5</timezone>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:svn:https://svn.code.sf.net/p/rdfbeans/code/trunk</connection>
+		<developerConnection>scm:svn:https://svn.code.sf.net/p/rdfbeans/code/trunk</developerConnection>
+		<url>http://sourceforge.net/p/rdfbeans/code/</url>
+	</scm>
+	<distributionManagement>
+	    <downloadUrl>http://rdfbeans.sf.net/repo</downloadUrl>	
+		<repository>
+			<id>rdfbeans.repo</id>
+			<name>RDFBeans SF.NET Repository</name>
+			<url>sftp://web.sourceforge.net/home/project-web/rdfbeans/htdocs/repo</url>
+		</repository>
+		<site>
+			<id>rdfbeans.site</id>
+			<url>sftp://web.sourceforge.net/home/project-web/rdfbeans/htdocs</url>
+		</site>
+	</distributionManagement>
+	 
+	<issueManagement>
+	  <system>Sourceforge.net</system>
+	  <url>https://sourceforge.net/tracker/?group_id=268877&amp;atid=1143944</url>
+	</issueManagement>
+		
+	<properties>
+	  <rdf2go.version>4.7.3</rdf2go.version>
+	  <rdf2go-sesame.version>4.7.3</rdf2go-sesame.version>
+	  <slf4j.version>1.6.1</slf4j.version>
+	</properties>
+
+	<!--  Dependencies -->
+
+	<dependencies>
+		
+		<!-- RDF2Go -->
+		<dependency>
+			<groupId>org.semweb4j</groupId>
+			<artifactId>rdf2go.api</artifactId>
+			<version>${rdf2go.version}</version>
+			<exclusions>
+			    <exclusion>
+				    <groupId>org.slf4j</groupId>
+				    <artifactId>slf4j-log4j12</artifactId>
+			    </exclusion>
+			    <exclusion>
+				    <groupId>org.slf4j</groupId>
+				    <artifactId>slf4j-api</artifactId>
+			    </exclusion>
+			    <exclusion>
+				    <groupId>org.slf4j</groupId>
+				    <artifactId>slf4j-simple</artifactId>
+			    </exclusion>
+			</exclusions>
+		</dependency>
+		
+		<!-- Logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Testing -->
+		<dependency>
+			<groupId>org.semweb4j</groupId>
+			<artifactId>rdf2go.impl.sesame23</artifactId>
+			<version>${rdf2go-sesame.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>semweb4j-repo</id>
+			<name>SemWeb4J</name>
+			<url>http://semweb4j.org/repo</url>
+		</repository>
+	</repositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>src</descriptorRef>
+						<descriptorRef>bin</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+				      <execution>
+					  <id>attach-sources</id>
+					  <goals>
+					      <goal>jar</goal>
+					  </goals>
+				      </execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+				      <execution>
+					  <id>attach-javadocs</id>
+					  <goals>
+					      <goal>jar</goal>
+					  </goals>
+				      </execution>
+				</executions>
+			</plugin>
+		</plugins>
+		
+		<extensions>
+		    <extension>
+		      <groupId>org.apache.maven.wagon</groupId>
+		       <artifactId>wagon-ssh</artifactId>
+		       <version>1.0-beta-6</version>
+		    </extension>
+	  </extensions>
+		
+	</build>
+
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<reportSets>
+					<reportSet>
+						<reports>
+						    <report>index</report> 
+						    <report>summary</report>
+							<report>dependencies</report>
+							<report>project-team</report>
+							<!--<report>mailing-list</report> -->
+							<!--<report>cim</report> -->
+							<report>issue-tracking</report>
+							<report>license</report>
+							<report>scm</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</reporting>
+
+
+</project>

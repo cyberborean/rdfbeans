@@ -1,0 +1,40 @@
+Download
+
+    Download latest sourcecode and binary packages:
+
+    {{{http://sourceforge.net/projects/rdfbeans/files/}http://sourceforge.net/projects/rdfbeans/files/}}
+    
+    See also:
+    
+    {{{source-repository.html}How to obtain sourcecode from Subversion repository}}
+    
+* Using Maven artifact
+
+    To use RDFBeans as a dependency of your Maven project, add it to your project
+    POM:
+    
++---------------+
+<repositories>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>rdfbeans-repo</id>
+            <name>RDFBeans</name>
+            <url>http://rdfbeans.sf.net/repo</url>
+        </repository>
+        ...
+</repositories>
+
+<dependencies>
+        <dependency>
+            <groupId>com.viceversatech</groupId>
+            <artifactId>RDFBeans</artifactId>
+            <version>2.1</version>
+        </dependency>
+        ...
+</dependencies>
++---------------+
