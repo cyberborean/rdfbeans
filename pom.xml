@@ -22,10 +22,8 @@
 		<developer>
 			<id>alexeya</id>
 			<name>Alex Alishevskikh</name>
-			<email>alex (at) viceversatech (dot) com</email>
+			<email>alex {at} cyberborean {dot} org</email>
 			<url>http://cyberborean.org</url>
-			<organization>ViceVersa Technologies</organization>
-			<organizationUrl>http://www.viceversatech.com</organizationUrl>
 			<roles>
 				<role>developer</role>
 			</roles>
@@ -33,9 +31,8 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:svn:https://svn.code.sf.net/p/rdfbeans/code/trunk</connection>
-		<developerConnection>scm:svn:https://svn.code.sf.net/p/rdfbeans/code/trunk</developerConnection>
-		<url>http://sourceforge.net/p/rdfbeans/code/</url>
+		<connection>scm:git:https://github.com/cyberborean/rdfbeans.git</connection>
+		<url>https://github.com/cyberborean/rdfbeans</url>
 	</scm>
 	<distributionManagement>
 	    <downloadUrl>http://rdfbeans.sf.net/repo</downloadUrl>	
