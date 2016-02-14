@@ -109,7 +109,7 @@ public class Person
   model adapter determined automatically via RDF2Go ModelFactory mechanism:
   
 +------------------+
-import com.viceversatech.rdfbeans.RDFBeanManager;
+import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.ontoware.rdf2go.ModelFactory;
 import org.ontoware.rdf2go.RDF2Go;
 import org.ontoware.rdf2go.model.Model;
@@ -126,7 +126,7 @@ model.close();
   An example with hardcoded Sesame 2.x NativeStore model implementation:
 
 +------------------+
-import com.viceversatech.rdfbeans.RDFBeanManager;
+import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.ontoware.rdf2go.model.Model;
 import org.openrdf.rdf2go.RepositoryModel;
 import org.openrdf.repository.Repository;
