@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cyberborean</groupId>
-	<artifactId>RDFBeans</artifactId>
+	<artifactId>rdfbeans</artifactId>
 	<packaging>jar</packaging>
 	<version>2.2-SNAPSHOT</version>
 	<name>RDFBeans</name>
@@ -23,35 +23,43 @@
 			<id>cyberborean</id>
 			<name>Alex Alishevskikh</name>
 			<email>alex {at} cyberborean {dot} org</email>
-			<url>http://cyberborean.org</url>
+			<url>https://github.com/cyberborean</url>
 			<roles>
 				<role>developer</role>
 			</roles>
 			<timezone>+5</timezone>
 		</developer>
 	</developers>
+
 	<scm>
-		<connection>scm:git:https://github.com/cyberborean/rdfbeans.git</connection>
+		<connection>scm:git:git://github.com/cyberborean/rdfbeans.git</connection>
+		<developerConnection>scm:git:git://github.com/cyberborean/rdfbeans.git</developerConnection>
 		<url>https://github.com/cyberborean/rdfbeans</url>
 	</scm>
-	<!-- <distributionManagement> <downloadUrl>http://rdfbeans.sf.net/repo</downloadUrl> 
-		<repository> <id>rdfbeans.repo</id> <name>RDFBeans SF.NET Repository</name> 
-		<url>sftp://web.sourceforge.net/home/project-web/rdfbeans/htdocs/repo</url> 
-		</repository> <site> <id>rdfbeans.site</id> <url>sftp://web.sourceforge.net/home/project-web/rdfbeans/htdocs</url> 
-		</site> </distributionManagement> -->
 
 	<issueManagement>
-		<system>Sourceforge.net</system>
-		<url>https://sourceforge.net/tracker/?group_id=268877&amp;atid=1143944</url>
+		<system>GitHub Issues</system>
+		<url>https://github.com/cyberborean/rdfbeans/issues</url>
 	</issueManagement>
 
 	<properties>
 		<rdf2go.version>4.7.3</rdf2go.version>
 		<rdf2go-sesame.version>4.7.3</rdf2go-sesame.version>
 		<slf4j.version>1.6.1</slf4j.version>
-
-		<github.global.server>github</github.global.server>
 	</properties>
+
+	<distributionManagement>
+		<repository>
+			<id>repo.cyberborean.org</id>
+			<name>repo.cyberborean.org</name>
+			<url>ftp://cyberborean.org</url>
+		</repository>
+		<site>
+			<id>rdfbeans.cyberborean.org</id>
+			<name>rdfbeans.cyberborean.org</name>
+			<url>ftp://cyberborean.org</url>
+		</site>
+	</distributionManagement>
 
 	<!-- Dependencies -->
 
@@ -171,34 +179,13 @@
 				</executions>
 			</plugin>
 
-			<plugin>
-				<groupId>com.github.github</groupId>
-				<artifactId>site-maven-plugin</artifactId>
-				<version>0.12</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>site</goal>
-						</goals>
-						<phase>site</phase>
-						<configuration>
-							<server>github</server>
-							<message>Updating site for ${project.version}</message>
-							<!-- The location where the site is uploaded -->
-							<path>${site.path}</path>
-							<!-- Use merge or override the content -->
-							<merge>true</merge>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 
 		<extensions>
 			<extension>
 				<groupId>org.apache.maven.wagon</groupId>
-				<artifactId>wagon-ssh</artifactId>
-				<version>1.0-beta-6</version>
+				<artifactId>wagon-ftp</artifactId>
+				<version>1.0</version>
 			</extension>
 		</extensions>
 
