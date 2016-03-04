@@ -3,8 +3,8 @@
  */
 package org.cyberborean.rdfbeans.proxy;
 
-import org.ontoware.rdf2go.model.node.Resource;
-import org.ontoware.rdf2go.model.node.URI;
+import org.openrdf.model.Resource;
+import org.openrdf.model.URI;
 
 /**
  * An RDFBeanManager listener for dynamic proxies creation and property changing

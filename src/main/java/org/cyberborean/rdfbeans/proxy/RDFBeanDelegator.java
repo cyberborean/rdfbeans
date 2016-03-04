@@ -26,17 +26,24 @@ import java.util.TreeSet;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
+import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
 import org.cyberborean.rdfbeans.reflect.RDFBeanInfo;
 import org.cyberborean.rdfbeans.reflect.RDFProperty;
-import org.ontoware.aifbcommons.collection.ClosableIterator;
-import org.ontoware.rdf2go.model.Model;
-import org.ontoware.rdf2go.model.Statement;
-import org.ontoware.rdf2go.model.node.BlankNode;
-import org.ontoware.rdf2go.model.node.Literal;
-import org.ontoware.rdf2go.model.node.Node;
-import org.ontoware.rdf2go.model.node.Resource;
-import org.ontoware.rdf2go.model.node.URI;
-import org.ontoware.rdf2go.model.node.Variable;
+import org.openrdf.OpenRDFException;
+import org.openrdf.model.BNode;
+import org.openrdf.model.Literal;
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
+import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.query.GraphQuery;
+import org.openrdf.query.QueryLanguage;
+import org.openrdf.repository.RepositoryConnection;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.RepositoryResult;
+
+import info.aduna.iteration.CloseableIteration;
 
 /**
  * An InvocationHandler to handle invocations of getter and setter methods
@@ -67,19 +74,19 @@ public class RDFBeanDelegator implements InvocationHandler {
 	private Resource subject;
 	private RDFBeanInfo rdfBeanInfo;
 	private RDFBeanManager rdfBeanManager;
-	private Model model;
-	private boolean created = false;
+	private final RepositoryConnection conn;
 
 	public RDFBeanDelegator(Resource subject, RDFBeanInfo rdfBeanInfo,
 			RDFBeanManager rdfBeanManager) {
 		this.subject = subject;
 		this.rdfBeanInfo = rdfBeanInfo;
 		this.rdfBeanManager = rdfBeanManager;
-		this.model = rdfBeanManager.getModel();
+		this.conn = rdfBeanManager.getRepositoryConnection();
 	}
 
+	@Override
 	public Object invoke(Object proxy, Method method, Object[] args)
-			throws RDFBeanException, NoSuchMethodException {
+			throws RDFBeanException, NoSuchMethodException, OpenRDFException {
 		if (method.getDeclaringClass() == Object.class) {
 			// invoke object method
 			if (method.equals(hashCodeMethod)) {
@@ -100,16 +107,16 @@ public class RDFBeanDelegator implements InvocationHandler {
 		}
 		if (method.equals(rdfBeanInfo.getSubjectProperty().getPropertyDescriptor().getReadMethod())) {
 			// Return RDFBean ID
-			return rdfBeanInfo.getSubjectProperty().getUriPart(subject);
+			return rdfBeanInfo.getSubjectProperty().getUriPart((URI)subject);
 		}
 		if (method.equals(rdfBeanInfo.getSubjectProperty().getPropertyDescriptor().getWriteMethod())) {
 			// no-op
 			return null;
 		}
 		// make sure that model is opened
-		if (!model.isOpen()) {
+		if (!conn.isOpen()) {
 			throw new IllegalStateException("Cannot invoke " + method.getName() + " method in " + 
-					rdfBeanInfo.getRDFBeanClass().getName() + ": underlying RDF model is not opened");
+					rdfBeanInfo.getRDFBeanClass().getName() + ": underlying RepositoryConnection is not opened");
 							
 		}
 		// invoke RDFBean method
@@ -172,25 +179,28 @@ public class RDFBeanDelegator implements InvocationHandler {
 	 * @param uri
 	 * @return
 	 * @throws RDFBeanException
+	 * @throws OpenRDFException 
+	 * @throws RepositoryException 
 	 */
 	@SuppressWarnings({
 		"unchecked", "rawtypes"
 	})
-	private Object getValue(RDFProperty p) throws RDFBeanException {
+	private Object getValue(RDFProperty p) throws RDFBeanException, RepositoryException, OpenRDFException {
 		Object result = null;
-		ClosableIterator<Statement> sts;
+		CloseableIteration<Statement, ? extends OpenRDFException> sts;
 		if (p.isInversionOfProperty()) {
-			sts = model.findStatements(Variable.ANY, p.getUri(), subject);
+			sts = conn.getStatements(null, p.getUri(), subject, false);
 			if (!sts.hasNext()) {
 				// try a container
-				sts = model.sparqlConstruct("CONSTRUCT { ?subject <" + p.getUri() + "> <" + subject + "> } " + 
-									  "WHERE { ?subject <" + p.getUri() + "> ?container. " +
-									  		  "?container ?li <" + subject + ">" +
-									  		" }").iterator();
+				GraphQuery q = conn.prepareGraphQuery(QueryLanguage.SPARQL, "CONSTRUCT { ?subject <" + p.getUri() + "> <" + subject + "> } " + 
+						  "WHERE { ?subject <" + p.getUri() + "> ?container. " +
+				  		  "?container ?li <" + subject + ">" +
+				  		" }");
+				sts = q.evaluate();
 			}			
 		}
 		else {
-			sts = model.findStatements(subject,	p.getUri(), Variable.ANY);
+			sts = conn.getStatements(subject, p.getUri(), null, false);
 		}
 		// Determine field type
 		Class fClass = p.getPropertyType();
@@ -220,7 +230,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 			Class cClass = p.getPropertyComponentType();
 			// Collect values
 			while (sts.hasNext()) {
-				Node object;
+				Value object;
 				if (p.isInversionOfProperty()) {
 					object = sts.next().getSubject();
 				}
@@ -255,7 +265,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 		} else {
 			// Not a collection - get the first value only
 			if (sts.hasNext()) {
-				Node object;
+				Value object;
 				if (p.isInversionOfProperty()) {
 					object = sts.next().getSubject();
 				}
@@ -279,32 +289,27 @@ public class RDFBeanDelegator implements InvocationHandler {
 	@SuppressWarnings({
 		"rawtypes", "unchecked"
 	})
-	private Object unmarshalObject(Node object, Class<?> iface) throws RDFBeanException {
+	private Object unmarshalObject(Value object, Class<?> iface) throws RDFBeanException, RepositoryException {
 		if (object instanceof Literal) {
 			// literal
-			return rdfBeanManager.getDatatypeMapper().getJavaObject(
-					object.asLiteral());
-		} else if (object instanceof BlankNode) {
+			return rdfBeanManager.getDatatypeMapper().getJavaObject((Literal)object);
+		} 
+		else if (object instanceof BNode) {
 			// Blank node - check if an RDF collection
 			Resource r = (Resource) object;
-			if (model.contains(r, org.ontoware.rdf2go.vocabulary.RDF.type,
-					org.ontoware.rdf2go.vocabulary.RDF.Alt)
-					|| model.contains(r,
-							org.ontoware.rdf2go.vocabulary.RDF.type,
-							org.ontoware.rdf2go.vocabulary.RDF.Bag)
-					|| model.contains(r,
-							org.ontoware.rdf2go.vocabulary.RDF.type,
-							org.ontoware.rdf2go.vocabulary.RDF.Seq)) {
+			if (conn.hasStatement(r, RDF.TYPE, RDF.BAG, false) 
+					|| conn.hasStatement(r, RDF.TYPE, RDF.SEQ, false)
+					|| conn.hasStatement(r, RDF.TYPE, RDF.ALT, false)) {	
 				// Collect all items (ordered)
 				ArrayList items = new ArrayList();
-				int i = 0;
+				int i = 1;
 				Object item = null;
 				do {
 					item = null;
-					ClosableIterator<Statement> itemst = model.findStatements(
+					RepositoryResult<Statement> itemst = conn.getStatements(
 							(Resource) object,
-							org.ontoware.rdf2go.vocabulary.RDF.li(i),
-							Variable.ANY);
+							conn.getValueFactory().createURI(RDF.NAMESPACE + "_" + i),
+							null, false);
 					if (itemst.hasNext()) {
 						item = unmarshalObject(itemst.next().getObject(), iface);
 						if (item != null) {
@@ -318,45 +323,40 @@ public class RDFBeanDelegator implements InvocationHandler {
 				return items; 
 			}
 		}
-		
-		// Resource
-
-		// first check if we can construct a bean proxy using binding info
-		Object o = rdfBeanManager.create((Resource) object);
-		if ((o == null) && (iface != null) && iface.isInterface()) {
-			// construct a bean proxy using provided interface
-			o =	rdfBeanManager.create((Resource) object, iface);
+		else if (object instanceof URI) {	
+			// Possibly, another RDFBean	
+			// try to construct a bean proxy using provided interface
+			Object proxy = rdfBeanManager.create((URI) object, iface);
+			if (proxy != null) {
+				return proxy;
+			}
+			else {
+				// check if a non-existent RDFBean
+				try {
+					RDFBeanInfo.get(iface);
+					return null;
+				}
+				catch (RDFBeanValidationException e) {
+					// continue
+				}
+			}
 		}
-		if (o != null) {
-			return o;
-		}
 		
-		// URI
-		return object.asURI().asJavaURI();
+		// return original RDF value
+		return object;
 	}
-
-	/**
-	 * 
-	 * TODO inverted properties
-	 * 
-	 * @param p
-	 * @param args
-	 * @throws RDFBeanException 
-	 */
+	
 	@SuppressWarnings({
 		"unchecked", "rawtypes"
 	})
-	private void setValue(RDFProperty p, Object value) throws RDFBeanException {
-		
-		/*
-		if (p.isInversionOfProperty()) {
-			throw new RDFBeanException("Value of a virtual property " +
-					"(inversion of '" + p.getUri() +"') cannot be set on " + 
-					rdfBeanInfo.getRDFBeanClass().getName());
-		}*/
-		
-		if (value == null) {
-			removeValue(p);
+	private void setValue(RDFProperty p, Object value) throws RDFBeanException, RepositoryException {		
+		if (value == null) {			
+			if (p.isInversionOfProperty()) {
+				conn.remove((Resource)null, p.getUri(), subject);
+			}
+			else {
+				conn.remove(subject, p.getUri(), null);
+			}	
 			return;
 		}
 				
@@ -371,40 +371,50 @@ public class RDFBeanDelegator implements InvocationHandler {
 		}
 		// XXX indexed properties		
 		
-		model.setAutocommit(false);
-		
-		
-		// RDFBeanManager should take care of it:
-		/*
-		if (!created) {
-			if (!rdfBeanManager.isResourceExist(subject)) {
-				// Create resource
-				model.addStatement(subject, org.ontoware.rdf2go.vocabulary.RDF.type, rdfBeanInfo.getRDFType());
-				model.addStatement(rdfBeanInfo.getRDFType(), RDFBeanManager.BINDINGIFACE_PROPERTY, 
-						model.createPlainLiteral(rdfBeanInfo.getRDFBeanClass().getName()));				
+		if (rdfBeanManager.isAutocommit()) {
+			conn.begin();
+		}
+		try {		
+			// Clear old values
+			if (p.isInversionOfProperty()) {
+				conn.remove((Resource)null, p.getUri(), subject);
 			}
-			created = true;
-		}*/
-		
-		// Clear old values
-		if (p.isInversionOfProperty()) {
-			model.removeStatements(Variable.ANY, p.getUri(), subject);
-		}
-		else {
-			model.removeStatements(subject, p.getUri(), Variable.ANY);
-		}
-				
-		if (p.getContainerType() == ContainerType.NONE) {
-			if (value instanceof Collection) {
-				// Collection
-				Collection values = (Collection) value;
-				// Create multiple triples
-				for (Object v : values) {
-					Node object = createNode(v);
-					if (object != null) {
+			else {
+				conn.remove(subject, p.getUri(), null);
+			}
+					
+			if (p.getContainerType() == ContainerType.NONE) {
+				if (value instanceof Collection) {
+					// Collection
+					Collection values = (Collection) value;
+					// Create multiple triples
+					for (Object v : values) {
+						Value object = toRdf(v);
+						if (object != null) {
+							if (p.isInversionOfProperty()) {
+								if (object instanceof Resource) {								
+									conn.add((Resource)object, p.getUri(), subject);
+								}
+								else {
+									throw new RDFBeanException("Value of the \"inverseOf\" property " + 
+											p.getPropertyDescriptor().getName() + " of class " + 
+											rdfBeanInfo.getRDFBeanClass().getName() + " must be of " +
+											"an RDFBean type (was: " + object.getClass().getName() + ")");
+								}
+							}
+							else {
+								conn.add(subject, p.getUri(), object);
+							}						
+						}
+					}
+				}
+				else {
+					// Single value
+					Value object = toRdf(value);
+					if (object != null) {	
 						if (p.isInversionOfProperty()) {
 							if (object instanceof Resource) {
-								model.addStatement((Resource)object, p.getUri(), subject);
+								conn.add((Resource)object, p.getUri(), subject);
 							}
 							else {
 								throw new RDFBeanException("Value of the \"inverseOf\" property " + 
@@ -414,96 +424,64 @@ public class RDFBeanDelegator implements InvocationHandler {
 							}
 						}
 						else {
-							model.addStatement(subject, p.getUri(), object);
-						}						
+							conn.add(subject, p.getUri(), object);
+						}					
 					}
 				}
 			}
 			else {
-				// Single value
-				Node object = createNode(value);
-				if (object != null) {	
-					if (p.isInversionOfProperty()) {
-						if (object instanceof Resource) {
-							model.addStatement((Resource)object, p.getUri(), subject);
-						}
-						else {
-							throw new RDFBeanException("Value of the \"inverseOf\" property " + 
-									p.getPropertyDescriptor().getName() + " of class " + 
-									rdfBeanInfo.getRDFBeanClass().getName() + " must be of " +
-									"an RDFBean type (was: " + object.getClass().getName() + ")");
-						}
+				if (!p.isInversionOfProperty()) {
+					Collection values;
+					if (value instanceof Collection) {
+						values = (Collection) value;
 					}
 					else {
-						model.addStatement(subject, p.getUri(), object);
-					}					
-				}
-			}
-		}
-		else {
-			if (!p.isInversionOfProperty()) {
-				Collection values;
-				if (value instanceof Collection) {
-					values = (Collection) value;
+						values = Collections.singleton(value);
+					}
+					// Create RDF Container bNode
+					URI ctype = RDF.BAG;
+					if (p.getContainerType() == ContainerType.SEQ) {
+						ctype = RDF.SEQ;
+					} else if (p.getContainerType() == ContainerType.ALT) {
+						ctype = RDF.ALT;
+					}
+					BNode collection = conn.getValueFactory().createBNode();
+					conn.add(collection, RDF.TYPE, ctype);
+					int i = 1;
+					for (Object v : values) {
+						Value object = toRdf(v);
+						if (object != null) {
+							conn.add(collection,
+									conn.getValueFactory().createURI(RDF.NAMESPACE + "_" + i),
+									object);
+							i++;						
+						}
+					}
+					conn.add(subject, p.getUri(), collection);
 				}
 				else {
-					values = Collections.singleton(value);
+					throw new RDFBeanException("RDF container type is not allowed for a \"inverseOf\" property " +
+							p.getPropertyDescriptor().getName() + " of class " + 
+							rdfBeanInfo.getRDFBeanClass().getName());
 				}
-				// Create RDF Container bNode
-				URI ctype = org.ontoware.rdf2go.vocabulary.RDF.Bag;
-				if (p.getContainerType() == ContainerType.SEQ) {
-					ctype = org.ontoware.rdf2go.vocabulary.RDF.Seq;
-				} else if (p.getContainerType() == ContainerType.ALT) {
-					ctype = org.ontoware.rdf2go.vocabulary.RDF.Alt;
-				}
-				BlankNode collection = model.createBlankNode();
-				model.addStatement(collection,
-						org.ontoware.rdf2go.vocabulary.RDF.type, ctype);
-				int i = 0;
-				for (Object v : values) {
-					Node object = createNode(v);
-					if (object != null) {
-						model.addStatement(collection,
-								org.ontoware.rdf2go.vocabulary.RDF.li(i),
-								object);
-						i++;						
-					}
-				}
-				model.addStatement(subject, p.getUri(), collection);
 			}
-			else {
-				throw new RDFBeanException("RDF container type is not allowed for a \"inverseOf\" property " +
-						p.getPropertyDescriptor().getName() + " of class " + 
-						rdfBeanInfo.getRDFBeanClass().getName());
+			if (rdfBeanManager.isAutocommit()) {
+				conn.commit();			
 			}
 		}
-		
-		if (rdfBeanManager.isAutocommit()) {
-			model.commit();			
-		}		
+		catch (RepositoryException e) {
+			if (rdfBeanManager.isAutocommit()) {
+				conn.rollback();			
+			}
+			throw e;
+		}			
 		
 	}
 
-	/**
-	 * @param p
-	 */
-	private void removeValue(RDFProperty p) {
-		model.setAutocommit(false);
-		if (p.isInversionOfProperty()) {
-			model.removeStatements(Variable.ANY, p.getUri(), subject);
-		}
-		else {
-			model.removeStatements(subject, p.getUri(), Variable.ANY);
-		}
-		if (rdfBeanManager.isAutocommit()) {
-			model.commit();
-		}
-	}
-
-	private synchronized Node createNode(Object value)
+	private synchronized Value toRdf(Object value)
 			throws RDFBeanException {
 		// Check if a Literal
-		Literal l = rdfBeanManager.getDatatypeMapper().getRDFValue(value, model);
+		Literal l = rdfBeanManager.getDatatypeMapper().getRDFValue(value, conn.getValueFactory());
 		if (l != null) {
 			return l;
 		}
@@ -521,7 +499,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 		}
 		// Check if Java URI
 		if (java.net.URI.class.isAssignableFrom(value.getClass())) {
-			return model.createURI(((java.net.URI) value).toString());
+			return conn.getValueFactory().createURI(((java.net.URI) value).toString());
 		}
 		
 		throw new RDFBeanException("Unexpected value to set: " + value);

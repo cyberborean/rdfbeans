@@ -1,12 +1,6 @@
-/**
- * ExamplesTest.java
- * 
- * RDFBeans Mar 22, 2011 12:44:48 PM alex
- *
- * $Id:$
- *  
- */
 package org.cyberborean.rdfbeans.test.examples;
+
+import static org.junit.Assert.*;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -15,37 +9,23 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import junit.framework.TestCase;
-
-import org.cyberborean.rdfbeans.RDFBeanManager;
+import org.cyberborean.rdfbeans.test.RDFBeansTestBase;
 import org.cyberborean.rdfbeans.test.examples.entities.IPerson;
-import org.ontoware.rdf2go.ModelFactory;
-import org.ontoware.rdf2go.RDF2Go;
-import org.ontoware.rdf2go.model.Model;
-import org.ontoware.rdf2go.model.Syntax;
-import org.ontoware.rdf2go.model.node.Resource;
+import org.junit.Before;
+import org.junit.Test;
+import org.openrdf.model.Resource;
 
 
-public class ExampleIFaceTest extends TestCase {
+public class ExampleIFaceTest extends RDFBeansTestBase {
 
     IPerson john;
     IPerson mary;
     IPerson jim;
     
-    Model model;
-    RDFBeanManager manager;
     Resource subject;
     
-    /** 
-     * @see junit.framework.TestCase#setUp()
-     */
-    protected void setUp() throws Exception {
-    	
-    	ModelFactory modelFactory = RDF2Go.getModelFactory();
-        model = modelFactory.createModel();
-        model.open();  
-    	manager = new RDFBeanManager(model);
-    	
+    @Before
+    public void setUp() throws Exception {    	    	
     	john = manager.create("johndoe", IPerson.class);
         john.setName("John Doe");
         john.setEmail("johndoe@example.com");        
@@ -76,17 +56,10 @@ public class ExampleIFaceTest extends TestCase {
         Set<IPerson> johnKnows = new HashSet<IPerson>();
         johnKnows.add(mary);
         johnKnows.add(jim);
-        john.setKnows(johnKnows);
-        
+        john.setKnows(johnKnows);        
     }
 
-    /** 
-     * @see junit.framework.TestCase#tearDown()
-     */
-    protected void tearDown() throws Exception {        
-        model.close();
-    }
-    
+    @Test
     public void testGetters() throws Exception {    	
     	assertEquals(john.getName(), "John Doe");
     	assertEquals(john.getEmail(), "johndoe@example.com");    	
@@ -116,6 +89,7 @@ public class ExampleIFaceTest extends TestCase {
     	}
     }
     
+    @Test
     public void testUpdate() throws Exception {
     	assertEquals(john.getName(), "John Doe");
     	john.setName("John Doe II");
@@ -125,11 +99,5 @@ public class ExampleIFaceTest extends TestCase {
     	assertEquals(john.getNick(1), "johnnydoeII");
     	assertTrue(Arrays.equals(john.getNick(), new String[] {"johndoe", "johnnydoeII", "JohnnyTheTerrible"}));
     }
-    
-    public void _testDump() throws Exception {
-    	// DEBUG dump the model
-        Syntax syntax = Syntax.RdfXml;
-        model.writeTo(System.out, syntax);
-        // ---
-    }
+   
 }

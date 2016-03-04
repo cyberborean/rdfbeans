@@ -34,8 +34,8 @@ import org.cyberborean.rdfbeans.annotations.RDFContainer;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 import org.cyberborean.rdfbeans.annotations.RDFSubject;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
-import org.ontoware.rdf2go.model.node.URI;
-import org.ontoware.rdf2go.model.node.impl.URIImpl;
+import org.openrdf.model.URI;
+import org.openrdf.model.impl.URIImpl;
 
 /**
  * RDFBeanInfo.
@@ -94,8 +94,10 @@ public class RDFBeanInfo {
 		if (ann != null) {			
 			String type = ann.value();
 			if (type != null) {
-				rdfType = createUri(type);
-				if (!rdfType.asJavaURI().isAbsolute()) {
+				try {
+					rdfType = new URIImpl(type);
+				}
+				catch (IllegalArgumentException iae) {
 					throw new RDFBeanValidationException(
 							"RDF type parameter of " + RDFBean.class.getName() + " annotation on "
 							+ rdfBeanClass.getName() + " class must be an absolute valid URI: " + type, rdfBeanClass);
@@ -166,10 +168,6 @@ public class RDFBeanInfo {
 				}
 			}
 		}
-	}
-	
-	protected URI createUri(String s) {		
-		return new URIImpl(createUriString(s));
 	}
 
 	protected String createUriString(String s) {

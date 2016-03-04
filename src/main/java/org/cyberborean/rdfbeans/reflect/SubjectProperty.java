@@ -13,9 +13,8 @@ import java.beans.PropertyDescriptor;
 import org.cyberborean.rdfbeans.annotations.RDFSubject;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
-import org.ontoware.rdf2go.model.node.Resource;
-import org.ontoware.rdf2go.model.node.URI;
-import org.ontoware.rdf2go.model.node.impl.URIImpl;
+import org.openrdf.model.URI;
+import org.openrdf.model.impl.URIImpl;
 
 /**
  * SubjectProperty.
@@ -70,8 +69,11 @@ public class SubjectProperty extends AbstractRDFBeanProperty {
 
 	@Override
 	public void setValue(Object rdfBean, Object v) throws RDFBeanException {
-		URI uri = new URIImpl(v.toString());
-		if (!uri.asJavaURI().isAbsolute()) {
+		URI uri;
+		try {
+			uri = new URIImpl(v.toString());
+		}
+		catch (IllegalArgumentException iae) {		
 			throw new RDFBeanException(
 					"RDF subject value must be an absolute valid URI: " + v);
 		}
@@ -82,22 +84,22 @@ public class SubjectProperty extends AbstractRDFBeanProperty {
 		return prefix;
 	}
 
-	public URI getUri(String uriPart) throws RDFBeanException {
-		URI uri = rdfBeanInfo.createUri(prefix + uriPart);
-		if (!uri.asJavaURI().isAbsolute()) {
+	public URI getUri(String uriPart) throws RDFBeanException {		
+		try {
+			return new URIImpl(prefix + uriPart);
+		}
+		catch (IllegalArgumentException iae) {
 			throw new RDFBeanException(
 					"RDF subject value must be an absolute valid URI: "
 							+ (prefix + uriPart));
 		}
-		return uri;
 	}
 
-	public String getUriPart(Resource subject) {
+	public String getUriPart(URI subjectUri) {
 		if (!prefix.isEmpty()) {
-			return subject.asURI().toString()
-					.replace(rdfBeanInfo.createUriString(prefix), "");
+			return subjectUri.stringValue().substring(prefix.length());
 		}
-		return subject.asURI().toString();
+		return subjectUri.stringValue();
 	}
 
 }

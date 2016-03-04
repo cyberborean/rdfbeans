@@ -1,5 +1,6 @@
-
 package org.cyberborean.rdfbeans.test.foafexample;
+
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -7,43 +8,27 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import junit.framework.TestCase;
-
-import org.cyberborean.rdfbeans.RDFBeanManager;
+import org.cyberborean.rdfbeans.test.RDFBeansTestBase;
 import org.cyberborean.rdfbeans.test.foafexample.entities.IDocument;
 import org.cyberborean.rdfbeans.test.foafexample.entities.IPerson;
-import org.ontoware.rdf2go.ModelFactory;
-import org.ontoware.rdf2go.RDF2Go;
-import org.ontoware.rdf2go.model.Model;
-import org.ontoware.rdf2go.model.Syntax;
-import org.ontoware.rdf2go.model.node.Resource;
+import org.junit.Before;
+import org.junit.Test;
+import org.openrdf.model.Resource;
 
 /**
  * A synthetic test for cascade proxy databinding and RDFBeans interfaces inheritance
  * 
- *  * @version $Id: FOAFExampleProxyTest.java 33 2011-11-19 11:20:20Z alexeya $
- * @author Alex Alishevskikh, alexeya(at)gmail.com
- * 
  */
-public class FOAFExampleProxyTest extends TestCase {
+public class FOAFExampleProxyTest extends RDFBeansTestBase {
     
     IPerson john;
     IPerson mary;
     IPerson jim;
     
-    RDFBeanManager manager;
-    Model model;
     Resource subject;    
   
-    /** 
-     * @see junit.framework.TestCase#setUp()
-     */
-    protected void setUp() throws Exception {
-    	
-    	ModelFactory modelFactory = RDF2Go.getModelFactory();
-        model = modelFactory.createModel();
-        model.open();  
-    	manager = new RDFBeanManager(model);
+    @Before
+    public void setUp() throws Exception { 
     	
         john = manager.create("johndoe", IPerson.class);
         john.setName("John Doe");
@@ -80,14 +65,8 @@ public class FOAFExampleProxyTest extends TestCase {
         johnKnows.add(jim);
         john.setKnows(johnKnows);
     }
-
-    /** 
-     * @see junit.framework.TestCase#tearDown()
-     */
-    protected void tearDown() throws Exception {        
-        model.close();
-    }
     
+    @Test
     public void testGetters() {    	
     	assertEquals(john.getName(), "John Doe");
     	assertEquals(john.getMbox(), "johndoe@example.com");    	
@@ -120,6 +99,7 @@ public class FOAFExampleProxyTest extends TestCase {
     	}
     }
     
+    @Test
     public void testUpdate() throws Exception {
     	assertEquals(john.getName(), "John Doe");
     	john.setName("John Doe II");
@@ -130,6 +110,7 @@ public class FOAFExampleProxyTest extends TestCase {
     	assertTrue(Arrays.equals(john.getNick(), new String[] {"johndoe", "johnnydoeII", "JohnnyTheTerrible"}));
     }
     
+    @Test
     public void testInversions() throws Exception {
     	assertEquals(john.getHomepage().getOwner(), john);
     	
@@ -155,19 +136,13 @@ public class FOAFExampleProxyTest extends TestCase {
         assertEquals(p3.getAuthor(), john);           
     }
     
+    @Test
     public void testCreateAll() throws Exception {
     	Collection<IPerson> all = manager.createAll(IPerson.class);
     	assertEquals(all.size(), 3);
     	for (IPerson p : all) {
     		assertTrue(p.equals(john) || p.equals(mary) || p.equals(jim));
     	}
-    }
-    
-    public void dump() throws Exception {
-    	// DEBUG dump the model
-        Syntax syntax = Syntax.RdfXml;
-        model.writeTo(System.out, syntax);
-        // ---
     }
    
 }

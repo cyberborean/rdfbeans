@@ -1,30 +1,21 @@
-/**
- * 
- */
 package org.cyberborean.rdfbeans.test.inversions;
 
-import java.net.URI;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.Set;
+import static org.junit.Assert.*;
 
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFSubject;
-import org.cyberborean.rdfbeans.test.examples.entities.Person;
-import org.ontoware.aifbcommons.collection.ClosableIterator;
-import org.ontoware.rdf2go.ModelFactory;
-import org.ontoware.rdf2go.RDF2Go;
-import org.ontoware.rdf2go.model.Model;
+import org.cyberborean.rdfbeans.test.RDFBeansTestBase;
+import org.junit.Test;
 
-import junit.framework.TestCase;
+import info.aduna.iteration.CloseableIteration;
 
 /**
  * @author alex
  *
  */
-public class InversionsClass1Test extends TestCase {
+public class InversionsClass1Test extends RDFBeansTestBase  {
 	
 	@RDFBean("urn:test:Parent")
 	public static class Parent {
@@ -69,21 +60,8 @@ public class InversionsClass1Test extends TestCase {
 			this.parent = parent;
 		}
 	}
-	
-	Model model;
-    RDFBeanManager manager;
-	
-	protected void setUp() throws Exception {        
-        ModelFactory modelFactory = RDF2Go.getModelFactory();
-        model = modelFactory.createModel();
-        model.open();        
-        manager = new RDFBeanManager(model);
-    }
-
-    protected void tearDown() throws Exception {        
-        model.close();
-    }
-    
+	    
+	@Test
     public void testInversions1() throws Exception {    	
     	String parentId = "urn:test:beans/Parent"; 
     			
@@ -101,7 +79,7 @@ public class InversionsClass1Test extends TestCase {
     	manager.add(parent);
     	
     	// Reinstantiate the RDFBeanManager to get rid of the objects cache
-    	manager = new RDFBeanManager(model);
+    	manager = new RDFBeanManager(manager.getRepositoryConnection());
     	
     	parent = manager.get(parentId, Parent.class);
     	assertNotNull(parent);
@@ -114,6 +92,7 @@ public class InversionsClass1Test extends TestCase {
     	}
     }
     
+	@Test
     public void testInversions2() throws Exception {    	
     	String parentId = "urn:test:beans/Parent"; 
     			
@@ -132,7 +111,7 @@ public class InversionsClass1Test extends TestCase {
     	manager.add(child2);
     	
     	// Reinstantiate the RDFBeanManager to get rid of the objects cache
-    	manager = new RDFBeanManager(model);
+    	manager = new RDFBeanManager(manager.getRepositoryConnection());
     	
     	parent = manager.get(parentId, Parent.class);
     	assertNotNull(parent);
@@ -145,6 +124,7 @@ public class InversionsClass1Test extends TestCase {
     	}
     }
 	
+    @Test
     public void testUpdate1() throws Exception {
     	String parentId = "urn:test:beans/Parent"; 
 		
@@ -162,7 +142,7 @@ public class InversionsClass1Test extends TestCase {
     	manager.add(parent);
     	
     	// Reinstantiate the RDFBeanManager to get rid of the objects cache
-    	manager = new RDFBeanManager(model);
+    	manager = new RDFBeanManager(manager.getRepositoryConnection());
     	
     	parent = manager.get(parentId, Parent.class);
     	assertNotNull(parent);
@@ -175,7 +155,7 @@ public class InversionsClass1Test extends TestCase {
     	manager.update(parent);
     	
     	// Reinstantiate the RDFBeanManager to get rid of the objects cache
-    	manager = new RDFBeanManager(model);
+    	manager = new RDFBeanManager(manager.getRepositoryConnection());
     	
     	parent = manager.get(parentId, Parent.class);
     	assertNotNull(parent);
@@ -185,6 +165,7 @@ public class InversionsClass1Test extends TestCase {
     	assertEquals(children[0].getId(), child1.getId());
     }
     
+    @Test
     public void testUpdate2() throws Exception {
     	String parentId = "urn:test:beans/Parent"; 
 		
@@ -203,7 +184,7 @@ public class InversionsClass1Test extends TestCase {
     	manager.add(child2);
     	
     	// Reinstantiate the RDFBeanManager to get rid of the objects cache
-    	manager = new RDFBeanManager(model);
+    	manager = new RDFBeanManager(manager.getRepositoryConnection());
     	
     	parent = manager.get(parentId, Parent.class);
     	assertNotNull(parent);
@@ -216,7 +197,7 @@ public class InversionsClass1Test extends TestCase {
     	manager.update(child2);
     	
     	// Reinstantiate the RDFBeanManager to get rid of the objects cache
-    	manager = new RDFBeanManager(model);
+    	manager = new RDFBeanManager(manager.getRepositoryConnection());
     	
     	parent = manager.get(parentId, Parent.class);
     	assertNotNull(parent);
@@ -226,6 +207,7 @@ public class InversionsClass1Test extends TestCase {
     	assertEquals(children[0].getId(), child1.getId());
     }
     
+    @Test
     public void testDelete1() throws Exception {
     	String parentId = "urn:test:beans/Parent"; 
 		
@@ -243,7 +225,7 @@ public class InversionsClass1Test extends TestCase {
     	manager.add(parent);
     	
     	// Reinstantiate the RDFBeanManager to get rid of the objects cache
-    	manager = new RDFBeanManager(model);
+    	manager = new RDFBeanManager(manager.getRepositoryConnection());
     	
     	parent = manager.get(parentId, Parent.class);
     	assertNotNull(parent);
@@ -256,7 +238,7 @@ public class InversionsClass1Test extends TestCase {
     	assertNull(manager.get(child2.getId(), Child.class));
     	
     	// Reinstantiate the RDFBeanManager to get rid of the objects cache
-    	manager = new RDFBeanManager(model);
+    	manager = new RDFBeanManager(manager.getRepositoryConnection());
     	
     	parent = manager.get(parentId, Parent.class);
     	assertNotNull(parent);
@@ -266,6 +248,7 @@ public class InversionsClass1Test extends TestCase {
     	assertEquals(children[0].getId(), child1.getId());
     }
     
+    @Test
     public void testDelete2() throws Exception {
     	String parentId = "urn:test:beans/Parent"; 
 		
@@ -284,7 +267,7 @@ public class InversionsClass1Test extends TestCase {
     	manager.add(child2);
     	
     	// Reinstantiate the RDFBeanManager to get rid of the objects cache
-    	manager = new RDFBeanManager(model);
+    	manager = new RDFBeanManager(manager.getRepositoryConnection());
     	
     	parent = manager.get(parentId, Parent.class);
     	assertNotNull(parent);
@@ -297,9 +280,9 @@ public class InversionsClass1Test extends TestCase {
     	assertNull(manager.get(parentId, Parent.class));    	
     	
     	// Reinstantiate the RDFBeanManager to get rid of the objects cache
-    	manager = new RDFBeanManager(model);
+    	manager = new RDFBeanManager(manager.getRepositoryConnection());
     	
-    	ClosableIterator<Child> childIter = manager.getAll(Child.class);
+    	CloseableIteration<Child, Exception> childIter = manager.getAll(Child.class);
     	while (childIter.hasNext()) {
     		Parent p = childIter.next().getParent();
     		assertNull(p);

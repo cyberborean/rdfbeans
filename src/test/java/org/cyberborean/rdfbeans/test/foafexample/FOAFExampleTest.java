@@ -1,45 +1,37 @@
 
 package org.cyberborean.rdfbeans.test.foafexample;
 
+import static org.junit.Assert.*;
+
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
-import junit.framework.TestCase;
-
-import org.cyberborean.rdfbeans.RDFBeanManager;
+import org.cyberborean.rdfbeans.test.RDFBeansTestBase;
 import org.cyberborean.rdfbeans.test.foafexample.entities.IPerson;
 import org.cyberborean.rdfbeans.test.foafexample.entities.impl.Document;
 import org.cyberborean.rdfbeans.test.foafexample.entities.impl.Person;
-import org.ontoware.aifbcommons.collection.ClosableIterator;
-import org.ontoware.rdf2go.ModelFactory;
-import org.ontoware.rdf2go.RDF2Go;
-import org.ontoware.rdf2go.model.Model;
-import org.ontoware.rdf2go.model.Syntax;
-import org.ontoware.rdf2go.model.node.Resource;
+import org.junit.Before;
+import org.junit.Test;
+import org.openrdf.model.Resource;
+import org.openrdf.repository.RepositoryException;
+
+import info.aduna.iteration.CloseableIteration;
 
 /**
- * A synthetic test for cascade databinding and RDFBeans classes inheritance 
- * 
- * @version $Id: FOAFExampleTest.java 30 2011-09-28 06:46:32Z alexeya $
- * @author Alex Alishevskikh, alexeya(at)gmail.com
+ * A synthetic test for cascade databinding and RDFBeans classes inheritance  
  * 
  */
-public class FOAFExampleTest extends TestCase {
+public class FOAFExampleTest extends RDFBeansTestBase {
     
     Person john;
     Person mary;
     Person jim;
-    
-    Model model;
-    RDFBeanManager manager;
     Resource subject;
     
-    /** 
-     * @see junit.framework.TestCase#setUp()
-     */
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception { 
         john = new Person();
         john.setId("johndoe");
         john.setName("John Doe");
@@ -78,21 +70,8 @@ public class FOAFExampleTest extends TestCase {
         johnKnows.add(jim);
         john.setKnows(johnKnows);
         
-        // ----
-        ModelFactory modelFactory = RDF2Go.getModelFactory();
-        model = modelFactory.createModel();
-        model.open();        
-        manager = new RDFBeanManager(model);
-        
         // ---
         subject = manager.add(john);
-    }
-
-    /** 
-     * @see junit.framework.TestCase#tearDown()
-     */
-    protected void tearDown() throws Exception {        
-        model.close();
     }
     
     private void checkIsJohn(Person p2) {
@@ -133,10 +112,12 @@ public class FOAFExampleTest extends TestCase {
         */
     }
     
-    public void testCheckResourceExists() {
+    @Test
+    public void testCheckResourceExists() throws RepositoryException {
         assertTrue(manager.isResourceExist(subject));
     }
     
+    @Test
     public void testGet() throws Exception {                
         Person p2 = (Person)manager.get(subject);
         checkIsJohn(p2);
@@ -146,8 +127,9 @@ public class FOAFExampleTest extends TestCase {
         checkIsJohn(p2);
     }        
     
+    @Test
     public void testGetAll() throws Exception {                
-        ClosableIterator<Person> iter = manager.getAll(Person.class);
+    	CloseableIteration<Person, Exception> iter = manager.getAll(Person.class);
         Set s = new HashSet();
         while (iter.hasNext()) {
             Object o = iter.next();
@@ -158,12 +140,13 @@ public class FOAFExampleTest extends TestCase {
         assertEquals(s.size(), 3);
     }
     
+    @Test
     public void testGetResource() throws Exception {                
         Resource r = manager.getResource(john.getId(), Person.class);
         assertEquals(r, subject);        
     }    
     
-    
+    @Test
     public void testUpdate() throws Exception {
         john.setName("John C. Doe");
         john.getHomepage().setUri("http://johndoe.example.com/home");
@@ -174,6 +157,7 @@ public class FOAFExampleTest extends TestCase {
         checkIsJohn((Person)manager.get(r));
     }
     
+    @Test
     public void testDelete1() throws Exception {
         assertTrue(manager.isResourceExist(subject));
         manager.delete(subject);
@@ -181,16 +165,19 @@ public class FOAFExampleTest extends TestCase {
         assertNull(manager.get(subject));
     }
     
+    @Test
     public void testDelete2() throws Exception {
         assertTrue(manager.isResourceExist(subject));
         manager.delete(john.getId(), Person.class);
         assertFalse(manager.isResourceExist(subject));
         assertNull(manager.get(subject));
     }
-    
-    public void testInversions() throws Exception {
-   /*
+   
+    /*
     TODO
+    @Test
+    public void testInversions() throws Exception {
+   
         checkIsJohn(john);
     	assertNotNull(john.getHomepage().getOwner());
     	assertEquals(john.getHomepage().getOwner(), john);
@@ -216,14 +203,8 @@ public class FOAFExampleTest extends TestCase {
         assertEquals(p1.getAuthor(), john);
         assertEquals(p2.getAuthor(), john);
         assertEquals(p3.getAuthor(), john);           	
-       */
-    	
+           	
     }
+    */
 
-    public void _testDump() throws Exception {
-    	// DEBUG dump the model
-        Syntax syntax = Syntax.RdfXml;
-        model.writeTo(System.out, syntax);
-        // ---
-    }
 }

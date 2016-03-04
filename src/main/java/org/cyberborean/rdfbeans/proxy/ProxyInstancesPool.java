@@ -4,12 +4,11 @@
 package org.cyberborean.rdfbeans.proxy;
 
 import java.lang.reflect.Proxy;
-import java.util.WeakHashMap;
 
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.reflect.RDFBeanInfo;
 import org.cyberborean.rdfbeans.util.WeakCacheMap;
-import org.ontoware.rdf2go.model.node.Resource;
+import org.openrdf.model.Resource;
 
 /**
  * @author alex

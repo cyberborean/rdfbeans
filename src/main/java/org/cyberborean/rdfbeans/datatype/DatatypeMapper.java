@@ -8,8 +8,8 @@
  */
 package org.cyberborean.rdfbeans.datatype;
 
-import org.ontoware.rdf2go.model.Model;
-import org.ontoware.rdf2go.model.node.Literal;
+import org.openrdf.model.Literal;
+import org.openrdf.model.ValueFactory;
 
 /**
  * DatatypeMapper.
@@ -32,9 +32,9 @@ public interface DatatypeMapper {
 	 * Returns an RDF literal representation of the given Java object.
 	 * 
 	 * @param value Java object
-	 * @param model RDF2Go model
+	 * @param valueFactory 
 	 * @return RDF plain or typed literal, or null if the object class is not supported
 	 */
-	Literal getRDFValue(Object value, Model model);
+	Literal getRDFValue(Object value, ValueFactory valueFactory);
 	
 }

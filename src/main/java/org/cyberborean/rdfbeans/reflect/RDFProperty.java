@@ -15,7 +15,8 @@ import org.cyberborean.rdfbeans.annotations.RDFContainer;
 import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
-import org.ontoware.rdf2go.model.node.URI;
+import org.openrdf.model.URI;
+import org.openrdf.model.impl.URIImpl;
 
 /**
  * RDFProperty.
@@ -54,16 +55,17 @@ public class RDFProperty extends AbstractRDFBeanProperty {
 								+ RDF.class.getName() + " annotation on  "
 								+ propertyDescriptor.getReadMethod().getName()
 								+ " method", rdfBeanInfo.getRDFBeanClass());
+			}			
+			try {
+				uri = new URIImpl(uriValue);
 			}
-			uri = rdfBeanInfo.createUri(uriValue);
-			if (!uri.asJavaURI().isAbsolute()) {
+			catch (IllegalArgumentException iae) {
 				throw new RDFBeanValidationException(
 						"RDF property URI parameter of " + RDF.class.getName()
 								+ " annotation on "
 								+ propertyDescriptor.getReadMethod().getName()
 								+ " method  must be an absolute valid URI: "
 								+ uriValue, rdfBeanInfo.getRDFBeanClass());
-
 			}
 			if (containerAnnotation != null) {
 				if (inversionOfProperty) {
@@ -90,28 +92,5 @@ public class RDFProperty extends AbstractRDFBeanProperty {
 	public RDFContainer.ContainerType getContainerType() {
 		return containerType;
 	}
-
-	/*
-	@Override
-	public Object getValue(Object rdfBean) throws RDFBeanException {
-		if (isInversionOfProperty()) {
-			//XXX
-			return "XXX";
-		}
-		else {
-			return super.getValue(rdfBean);
-		}
-	}
-
-	@Override
-	public void setValue(Object rdfBean, Object v) throws RDFBeanException {
-		if (isInversionOfProperty()) {
-			//no-op			
-		}
-		else {
-			super.setValue(rdfBean, v);
-		}
-	}
-	*/
 
 }

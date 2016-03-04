@@ -1,32 +1,18 @@
-/**
- * 
- */
 package org.cyberborean.rdfbeans.test.inversions;
 
-import java.net.URI;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.Set;
+import static org.junit.Assert.*;
 
-import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFSubject;
-import org.cyberborean.rdfbeans.test.examples.entities.Person;
-import org.cyberborean.rdfbeans.test.inversions.InversionsIFace1Test.Child;
-import org.cyberborean.rdfbeans.test.inversions.InversionsIFace1Test.Parent;
-import org.ontoware.rdf2go.ModelFactory;
-import org.ontoware.rdf2go.RDF2Go;
-import org.ontoware.rdf2go.model.Model;
-import org.ontoware.rdf2go.model.Syntax;
-
-import junit.framework.TestCase;
+import org.cyberborean.rdfbeans.test.RDFBeansTestBase;
+import org.junit.Test;
 
 /**
  * @author alex
  *
  */
-public class InversionsIFace2Test extends TestCase {
+public class InversionsIFace2Test extends RDFBeansTestBase  {
 	
 	@RDFBean("urn:test:Parent")
 	public static interface Parent {
@@ -52,20 +38,7 @@ public class InversionsIFace2Test extends TestCase {
 		public void setParent(Parent parent);
 	}
 	
-	Model model;
-    RDFBeanManager manager;
-	
-	protected void setUp() throws Exception {        
-        ModelFactory modelFactory = RDF2Go.getModelFactory();
-        model = modelFactory.createModel();
-        model.open();        
-        manager = new RDFBeanManager(model);
-    }
-
-    protected void tearDown() throws Exception { 
-        model.close();
-    }
-    
+	@Test
     public void testInversions1() throws Exception {    	
     	String parentId = "urn:test:beans/Parent"; 
     			
@@ -84,7 +57,8 @@ public class InversionsIFace2Test extends TestCase {
     	}
     }
     
-    public void testInversions2() throws Exception {    	
+	@Test
+	public void testInversions2() throws Exception {    	
     	String parentId = "urn:test:beans/Parent"; 
     			
     	Parent parent = manager.create(parentId, Parent.class);    	
@@ -103,6 +77,7 @@ public class InversionsIFace2Test extends TestCase {
     	}
     }
     
+	@Test
     public void testUpdate1() throws Exception {
     	String parentId = "urn:test:beans/Parent"; 
 		
@@ -124,6 +99,7 @@ public class InversionsIFace2Test extends TestCase {
     	assertEquals(children[0].getId(), child1.getId());
     }
     
+	@Test
     public void testUpdate2() throws Exception {
     	String parentId = "urn:test:beans/Parent"; 
 		
@@ -146,6 +122,7 @@ public class InversionsIFace2Test extends TestCase {
     	assertEquals(children[0].getId(), child1.getId());
     }
     
+	@Test
     public void testDelete1() throws Exception {
     	String parentId = "urn:test:beans/Parent"; 
 		
@@ -168,6 +145,7 @@ public class InversionsIFace2Test extends TestCase {
     	assertEquals(children[0].getId(), child1.getId());
     }
     
+	@Test
     public void testDelete2() throws Exception {
     	String parentId = "urn:test:beans/Parent"; 
 		
@@ -188,9 +166,6 @@ public class InversionsIFace2Test extends TestCase {
     	
     	assertNull(child1.getParent());
     	assertNull(child2.getParent());
-    	
     }
-
-	
 
 }

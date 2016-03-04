@@ -50,10 +50,10 @@ RDFBeans framework
 
 * See more  
   
-  * {{{usage.html} RDFBeans usage}}
+  * {{{/usage.html} RDFBeans usage}}
   
-  * {{{rdfbean.html} RDFBean annotations}}
+  * {{{/rdfbean.html} RDFBean annotations}}
   
-  * {{{apidocs/index.html} RDFBeans API JavaDocs}}
+  * {{{/apidocs/index.html} RDFBeans API JavaDocs}}
   
   []

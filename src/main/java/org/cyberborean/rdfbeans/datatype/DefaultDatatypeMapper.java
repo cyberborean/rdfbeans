@@ -8,16 +8,15 @@
  */
 package org.cyberborean.rdfbeans.datatype;
 
-import java.text.ParseException;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.ontoware.rdf2go.model.Model;
-import org.ontoware.rdf2go.model.node.DatatypeLiteral;
-import org.ontoware.rdf2go.model.node.Literal;
-import org.ontoware.rdf2go.model.node.URI;
-import org.ontoware.rdf2go.vocabulary.XSD;
+import org.openrdf.model.Literal;
+import org.openrdf.model.URI;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.vocabulary.XMLSchema;
 
 
 /**
@@ -40,25 +39,27 @@ import org.ontoware.rdf2go.vocabulary.XSD;
  */
 public class DefaultDatatypeMapper implements DatatypeMapper {
 
-	private static final Map<Class, URI> DATATYPE_MAP = new HashMap<Class, URI>();
+	private static final Map<Class<?>, URI> DATATYPE_MAP = new HashMap<Class<?>, URI>();
 	static {
-		DATATYPE_MAP.put(String.class, XSD._string);
-		DATATYPE_MAP.put(Integer.class, XSD._integer);
-		DATATYPE_MAP.put(Date.class, XSD._dateTime);
-		DATATYPE_MAP.put(Boolean.class, XSD._boolean);
-		DATATYPE_MAP.put(Float.class, XSD._float);
-		DATATYPE_MAP.put(Double.class, XSD._double);
-		DATATYPE_MAP.put(Byte.class, XSD._byte);
-		DATATYPE_MAP.put(Long.class, XSD._long);
-		DATATYPE_MAP.put(Short.class, XSD._short);
+		DATATYPE_MAP.put(String.class, XMLSchema.STRING);
+		DATATYPE_MAP.put(Integer.class, XMLSchema.INT);
+		DATATYPE_MAP.put(Date.class, XMLSchema.DATETIME);
+		DATATYPE_MAP.put(Boolean.class, XMLSchema.BOOLEAN);
+		DATATYPE_MAP.put(Float.class, XMLSchema.FLOAT);
+		DATATYPE_MAP.put(Double.class, XMLSchema.DOUBLE);
+		DATATYPE_MAP.put(Byte.class, XMLSchema.BYTE);
+		DATATYPE_MAP.put(Long.class, XMLSchema.LONG);
+		DATATYPE_MAP.put(Short.class, XMLSchema.SHORT);
+		DATATYPE_MAP.put(BigDecimal.class, XMLSchema.DECIMAL);
+		DATATYPE_MAP.put(java.net.URI.class, XMLSchema.ANYURI);
 	}
 	
-	public static URI getDatatypeURI(Class c) {
+	public static URI getDatatypeURI(Class<?> c) {
 		// Check for direct mapping
 		URI uri = DATATYPE_MAP.get(c);
 		if (uri == null) {
 			// Check for first assignable type mapping 
-			for (Map.Entry<Class, URI> me : DATATYPE_MAP.entrySet()) {
+			for (Map.Entry<Class<?>, URI> me : DATATYPE_MAP.entrySet()) {
 				if (me.getKey().isAssignableFrom(c)) {
 					return me.getValue();
 				}
@@ -68,47 +69,63 @@ public class DefaultDatatypeMapper implements DatatypeMapper {
 	}
 
 	public Object getJavaObject(Literal l) {
-		String s = l.getValue();
-		if (l instanceof DatatypeLiteral) {
-			URI dt = l.asDatatypeLiteral().getDatatype();
-			if (dt.equals(XSD._string)) {
-				return s;
-			} else if (dt.equals(XSD._boolean)) {
-				return Boolean.valueOf(s);
-			} else if (dt.equals(XSD._integer)) {
-				return Integer.valueOf(s);
-			} else if (dt.equals(XSD._byte)) {
-				return Byte.valueOf(s);
-			} else if (dt.equals(XSD._long)) {
-				return Long.valueOf(s);
-			} else if (dt.equals(XSD._short)) {
-				return Short.valueOf(s);
-			} else if (dt.equals(XSD._float)) {
-				return Float.valueOf(s);
-			} else if (dt.equals(XSD._double)) {
-				return Double.valueOf(s);
-			} else if (dt.equals(XSD._dateTime)) {
-				try {
-					return DateUtils.parseDate(s);
-				} catch (ParseException e) {
-					
-				}
-			} 
+		URI dt = l.getDatatype();
+		if ((dt == null) || XMLSchema.STRING.equals(dt)) {
+			return l.stringValue();
+		} 
+		else if (XMLSchema.BOOLEAN.equals(dt)) {
+			return l.booleanValue();
+		} 
+		else if (XMLSchema.INT.equals(dt)) {
+			return l.intValue(); //Integer.valueOf(l.intValue());
+		} 
+		else if (XMLSchema.BYTE.equals(dt)) {
+			return l.byteValue(); //Byte.valueOf(l.byteValue());
+		} 
+		else if (XMLSchema.LONG.equals(dt)) {
+			return l.longValue();//Long.valueOf(l.longValue());
+		} 
+		else if (XMLSchema.SHORT.equals(dt)) {
+			return l.shortValue(); //Short.valueOf(l.shortValue());
+		} 
+		else if (XMLSchema.FLOAT.equals(dt)) {
+			return l.floatValue(); //Float.valueOf(l.floatValue());
+		} 
+		else if (XMLSchema.DOUBLE.equals(dt)) {
+			return l.doubleValue();//Double.valueOf(l.doubleValue());
+		} 
+		else if (XMLSchema.DECIMAL.equals(dt)) {
+			return l.decimalValue();
 		}
-		return s;
+		else if (XMLSchema.ANYURI.equals(dt)) {
+			return java.net.URI.create(l.stringValue());
+		}
+		else if (XMLSchema.DATETIME.equals(dt)) {
+			return l.calendarValue().toGregorianCalendar().getTime();
+			
+			/*
+			try {
+				return DateUtils.parseDate(s);
+			} catch (ParseException e) {
+				
+			}
+			*/
+		} 
+		return l.stringValue();
 	}
 	
-	public Literal getRDFValue(Object value, Model model) {
+
+	@Override
+	public Literal getRDFValue(Object value, ValueFactory vf) {
+		if (value instanceof Date) {
+			return vf.createLiteral((Date)value);
+		}
 		URI dtUri = getDatatypeURI(value.getClass());
-		if (dtUri != null) {
-			String s = value.toString();
-			if (value instanceof Date) {
-				s = DateUtils.getDefaultDateFormat().format((Date) value);
+		if (dtUri != null) {						
+			if (dtUri.equals(XMLSchema.STRING)) {
+				return vf.createLiteral(value.toString());
 			}
-			if (dtUri.equals(XSD._string)) {
-				return model.createPlainLiteral(s);
-			}
-			return model.createDatatypeLiteral(s, dtUri);
+			return vf.createLiteral(value.toString(), dtUri);
 		}
 		return null;
 	}

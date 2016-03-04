@@ -1,24 +1,13 @@
-/**
- * RDFBeanProxyTest.java
- * 
- * RDFBeans Sep 30, 2011 4:36:25 PM alex
- *
- * $Id:$
- *  
- */
 package org.cyberborean.rdfbeans.test.proxy;
+
+import static org.junit.Assert.*;
 
 import java.util.Collection;
 
-import junit.framework.TestCase;
-
-import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFSubject;
-import org.ontoware.rdf2go.ModelFactory;
-import org.ontoware.rdf2go.RDF2Go;
-import org.ontoware.rdf2go.model.Model;
-import org.ontoware.rdf2go.model.node.Resource;
+import org.cyberborean.rdfbeans.test.RDFBeansTestBase;
+import org.junit.Test;
 
 /**
  * RDFBeanProxyTest.
@@ -26,26 +15,9 @@ import org.ontoware.rdf2go.model.node.Resource;
  * @author alex
  *
  */
-public class RDFBeanProxyTest extends TestCase {
+public class RDFBeanProxyTest extends RDFBeansTestBase {
 
-	RDFBeanManager manager;
-    Model model;
-    Resource subject;    
-  
-    /** 
-     * @see junit.framework.TestCase#setUp()
-     */
-    protected void setUp() throws Exception {    	
-    	ModelFactory modelFactory = RDF2Go.getModelFactory();
-        model = modelFactory.createModel();
-        model.open();  
-    	manager = new RDFBeanManager(model);
-    }
-    
-    protected void tearDown() throws Exception {        
-        model.close();
-    }
-    
+    @Test
     public void testEquals() throws Exception {    
     	TestIface o1 = manager.create("urn:test:object", TestIface.class);
     	TestIface o2 = manager.create("urn:test:object", TestIface.class);
@@ -58,6 +30,7 @@ public class RDFBeanProxyTest extends TestCase {
     	assertEquals(all.size(), 2);
     }
     
+    @Test
     public void testHashCode() throws Exception {    
     	TestIface o1 = manager.create("urn:test:object", TestIface.class);
     	TestIface o2 = manager.create("urn:test:object", TestIface.class);

@@ -1,12 +1,8 @@
 Download
 
-    Download latest sourcecode and binary packages:
+    Clone or download latest sourcecode from GitHub repository:
 
-    {{{http://sourceforge.net/projects/rdfbeans/files/}http://sourceforge.net/projects/rdfbeans/files/}}
-    
-    See also:
-    
-    {{{source-repository.html}How to obtain sourcecode from Subversion repository}}
+    {{{https://github.com/cyberborean/rdfbeans}https://github.com/cyberborean/rdfbeans}}
     
 * Using Maven artifact
 
@@ -20,20 +16,20 @@ Download
                 <enabled>true</enabled>
             </releases>
             <snapshots>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
             </snapshots>
             <id>rdfbeans-repo</id>
             <name>RDFBeans</name>
-            <url>http://rdfbeans.sf.net/repo</url>
+            <url>https://raw.githubusercontent.com/cyberborean/rdfbeans/mvn-repo</url>
         </repository>
         ...
 </repositories>
 
 <dependencies>
         <dependency>
-            <groupId>com.viceversatech</groupId>
-            <artifactId>RDFBeans</artifactId>
-            <version>2.1</version>
+            <groupId>org.cyberborean</groupId>
+            <artifactId>rdfbeans</artifactId>
+            <version>2.2-SNAPSHOT</version>
         </dependency>
         ...
 </dependencies>

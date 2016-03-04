@@ -1,12 +1,6 @@
-/**
- * DatatypeTest.java
- * 
- * RDFBeans Feb 4, 2011 4:24:41 PM alex
- *
- * $Id: DatatypeTest.java 40 2014-04-05 04:07:09Z alexeya $
- *  
- */
 package org.cyberborean.rdfbeans.datatype;
+
+import static org.junit.Assert.*;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -17,33 +11,19 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import junit.framework.TestCase;
-
-import org.cyberborean.rdfbeans.RDFBeanManager;
+import org.cyberborean.rdfbeans.test.RDFBeansTestBase;
 import org.cyberborean.rdfbeans.test.entities.DatatypeTestClass;
-import org.ontoware.rdf2go.ModelFactory;
-import org.ontoware.rdf2go.RDF2Go;
-import org.ontoware.rdf2go.model.Model;
-import org.ontoware.rdf2go.model.Syntax;
-import org.ontoware.rdf2go.model.node.Resource;
+import org.junit.Before;
+import org.junit.Test;
+import org.openrdf.model.Resource;
 
-/**
- * DatatypeTest.
- *
- * @author alex
- *
- */
-public class DatatypeTest extends TestCase {
+public class DatatypeTest extends RDFBeansTestBase {
 	
 	DatatypeTestClass object;
-	Model model;
-    RDFBeanManager manager;
     Resource resource;
     
-    /** 
-     * @see junit.framework.TestCase#setUp()
-     */
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
     	object = new DatatypeTestClass();
     	object.setStringValue("TEST");
     	object.setBooleanValue(true);
@@ -65,17 +45,10 @@ public class DatatypeTest extends TestCase {
     	sortedSet.addAll(set);
     	object.setSortedSetValue(sortedSet);    	
     	
-    	ModelFactory modelFactory = RDF2Go.getModelFactory();
-        model = modelFactory.createModel();
-        model.open();        
-        manager = new RDFBeanManager(model);
         resource = manager.add(object);        
-    }
+    }    
     
-    protected void tearDown() throws Exception {        
-        model.close();
-    }
-    
+    @Test
     public void test() throws Exception {               
     	Object o = manager.get(resource);    	
     	assertNotNull(o);
@@ -85,8 +58,8 @@ public class DatatypeTest extends TestCase {
     	assertEquals(object.getStringValue(), object2.getStringValue());
     	assertEquals(object.isBooleanValue(), object2.isBooleanValue());
     	assertEquals(object.getIntValue(), object2.getIntValue());
-    	assertEquals(object.getFloatValue(), object2.getFloatValue());
-    	assertEquals(object.getDoubleValue(), object2.getDoubleValue());
+    	assertEquals(object.getFloatValue(), object2.getFloatValue(), 0);
+    	assertEquals(object.getDoubleValue(), object2.getDoubleValue(), 0);
     	assertEquals(object.getByteValue(), object2.getByteValue());
     	assertEquals(object.getLongValue(), object2.getLongValue());
     	assertEquals(object.getShortValue(), object2.getShortValue());
@@ -101,14 +74,5 @@ public class DatatypeTest extends TestCase {
     		assertEquals(s1.next(), s2.next());
     	}    	
     }
-    
-    public void _testDump() throws Exception {
-    	// DEBUG dump the model
-        Syntax syntax = Syntax.RdfXml;
-        model.writeTo(System.out, syntax);
-        // ---
-    }
-    
-    
-
+      
 }

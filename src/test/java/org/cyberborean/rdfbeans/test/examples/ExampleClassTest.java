@@ -1,12 +1,6 @@
-/**
- * ExamplesTest.java
- * 
- * RDFBeans Mar 22, 2011 12:44:48 PM alex
- *
- * $Id:$
- *  
- */
 package org.cyberborean.rdfbeans.test.examples;
+
+import static org.junit.Assert.*;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -14,32 +8,26 @@ import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
-import junit.framework.TestCase;
-
-import org.cyberborean.rdfbeans.RDFBeanManager;
+import org.cyberborean.rdfbeans.test.RDFBeansTestBase;
 import org.cyberborean.rdfbeans.test.examples.entities.Person;
-import org.ontoware.aifbcommons.collection.ClosableIterator;
-import org.ontoware.rdf2go.ModelFactory;
-import org.ontoware.rdf2go.RDF2Go;
-import org.ontoware.rdf2go.model.Model;
-import org.ontoware.rdf2go.model.Syntax;
-import org.ontoware.rdf2go.model.node.Resource;
+import org.junit.Before;
+import org.junit.Test;
+import org.openrdf.model.Resource;
+import org.openrdf.repository.RepositoryException;
+
+import info.aduna.iteration.CloseableIteration;
 
 
-public class ExampleClassTest extends TestCase {
+public class ExampleClassTest extends RDFBeansTestBase {
 
     Person john;
     Person mary;
     Person jim;
     
-    Model model;
-    RDFBeanManager manager;
     Resource subject;
     
-    /** 
-     * @see junit.framework.TestCase#setUp()
-     */
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         john = new Person();
         john.setId("johndoe");
         john.setName("John Doe");
@@ -75,21 +63,8 @@ public class ExampleClassTest extends TestCase {
         johnKnows.add(jim);
         john.setKnows(johnKnows);
         
-        // ----
-        ModelFactory modelFactory = RDF2Go.getModelFactory();
-        model = modelFactory.createModel();
-        model.open();        
-        manager = new RDFBeanManager(model);
-        
         // ---
         subject = manager.add(john);
-    }
-
-    /** 
-     * @see junit.framework.TestCase#tearDown()
-     */
-    protected void tearDown() throws Exception {        
-        model.close();
     }
     
     private void checkIsJohn(Person p2) {
@@ -117,10 +92,12 @@ public class ExampleClassTest extends TestCase {
         }
     }
     
-    public void testCheckResourceExists() {
+    @Test
+    public void testCheckResourceExists() throws RepositoryException {
         assertTrue(manager.isResourceExist(subject));
     }
     
+    @Test
     public void testGet() throws Exception {                
         Person p2 = (Person) manager.get(subject);
         checkIsJohn(p2);
@@ -130,8 +107,9 @@ public class ExampleClassTest extends TestCase {
         checkIsJohn(p2);
     }        
     
+    @Test
     public void testGetAll() throws Exception {                
-        ClosableIterator<Person> iter = manager.getAll(Person.class);
+        CloseableIteration<Person, Exception> iter = manager.getAll(Person.class);
         Set s = new HashSet();
         while (iter.hasNext()) {
             Object o = iter.next();
@@ -142,12 +120,13 @@ public class ExampleClassTest extends TestCase {
         assertEquals(s.size(), 3);
     }
     
+    @Test
     public void testGetResource() throws Exception {                
         Resource r = manager.getResource(john.getId(), Person.class);
         assertEquals(r, subject);        
     }    
     
-    
+    @Test
     public void testUpdate() throws Exception {
         john.setName("John C. Doe");
         String[] nicks = Arrays.copyOf(john.getNick(), john.getNick().length + 1);
@@ -157,6 +136,7 @@ public class ExampleClassTest extends TestCase {
         checkIsJohn((Person)manager.get(r));
     }
     
+    @Test
     public void testDelete1() throws Exception {
         assertTrue(manager.isResourceExist(subject));
         manager.delete(subject);
@@ -164,18 +144,12 @@ public class ExampleClassTest extends TestCase {
         assertNull(manager.get(subject));
     }
     
+    @Test
     public void testDelete2() throws Exception {
         assertTrue(manager.isResourceExist(subject));
         manager.delete(john.getId(), Person.class);
         assertFalse(manager.isResourceExist(subject));
         assertNull(manager.get(subject));
-    }
-
-    public void _testDump() throws Exception {
-    	// DEBUG dump the model
-        Syntax syntax = Syntax.RdfXml;
-        model.writeTo(System.out, syntax);
-        // ---
     }
 
 }
