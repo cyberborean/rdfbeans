@@ -35,4 +35,4 @@ frameworks.
 
   * Support of RDF namespaces
 
-Read more on the web-site: [http://rdfbeans.cyberborean.org](http://rdfbeans.cyberborean.org)
+
