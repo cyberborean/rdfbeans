@@ -13,8 +13,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.URI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
@@ -39,7 +39,7 @@ import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
  */
 public class DefaultDatatypeMapper implements DatatypeMapper {
 
-	private static final Map<Class<?>, URI> DATATYPE_MAP = new HashMap<Class<?>, URI>();
+	private static final Map<Class<?>, IRI> DATATYPE_MAP = new HashMap<>();
 	static {
 		DATATYPE_MAP.put(String.class, XMLSchema.STRING);
 		DATATYPE_MAP.put(Integer.class, XMLSchema.INT);
@@ -53,15 +53,15 @@ public class DefaultDatatypeMapper implements DatatypeMapper {
 		DATATYPE_MAP.put(BigDecimal.class, XMLSchema.DECIMAL);
 		DATATYPE_MAP.put(java.net.URI.class, XMLSchema.ANYURI);
 	}
-	
-	public static URI getDatatypeURI(Class<?> c) {
+
+	public static IRI getDatatypeURI(Class<?> c) {
 		// Check for direct mapping
-		URI uri = DATATYPE_MAP.get(c);
+		IRI uri = DATATYPE_MAP.get(c);
 		if (uri == null) {
 			// Check for first assignable type mapping 
-			for (Map.Entry<Class<?>, URI> me : DATATYPE_MAP.entrySet()) {
-				if (me.getKey().isAssignableFrom(c)) {
-					return me.getValue();
+			for (Map.Entry<Class<?>, IRI> entry : DATATYPE_MAP.entrySet()) {
+				if (entry.getKey().isAssignableFrom(c)) {
+					return entry.getValue();
 				}
 			}
 		}
@@ -69,7 +69,7 @@ public class DefaultDatatypeMapper implements DatatypeMapper {
 	}
 
 	public Object getJavaObject(Literal l) {
-		URI dt = l.getDatatype();
+		IRI dt = l.getDatatype();
 		if ((dt == null) || XMLSchema.STRING.equals(dt)) {
 			return l.stringValue();
 		} 
@@ -113,15 +113,14 @@ public class DefaultDatatypeMapper implements DatatypeMapper {
 		} 
 		return l.stringValue();
 	}
-	
 
 	@Override
 	public Literal getRDFValue(Object value, ValueFactory vf) {
 		if (value instanceof Date) {
 			return vf.createLiteral((Date)value);
 		}
-		URI dtUri = getDatatypeURI(value.getClass());
-		if (dtUri != null) {						
+		IRI dtUri = getDatatypeURI(value.getClass());
+		if (dtUri != null) {
 			if (dtUri.equals(XMLSchema.STRING)) {
 				return vf.createLiteral(value.toString());
 			}
@@ -129,5 +128,4 @@ public class DefaultDatatypeMapper implements DatatypeMapper {
 		}
 		return null;
 	}
-	
 }

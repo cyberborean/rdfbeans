@@ -31,10 +31,10 @@ import org.cyberborean.rdfbeans.reflect.RDFBeanInfo;
 import org.cyberborean.rdfbeans.reflect.RDFProperty;
 import org.eclipse.rdf4j.OpenRDFException;
 import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.URI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.GraphQuery;
@@ -106,7 +106,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 		}
 		if (method.equals(rdfBeanInfo.getSubjectProperty().getPropertyDescriptor().getReadMethod())) {
 			// Return RDFBean ID
-			return rdfBeanInfo.getSubjectProperty().getUriPart((URI)subject);
+			return rdfBeanInfo.getSubjectProperty().getUriPart((IRI)subject);
 		}
 		if (method.equals(rdfBeanInfo.getSubjectProperty().getPropertyDescriptor().getWriteMethod())) {
 			// no-op
@@ -322,10 +322,10 @@ public class RDFBeanDelegator implements InvocationHandler {
 				return items; 
 			}
 		}
-		else if (object instanceof URI) {	
-			// Possibly, another RDFBean	
+		else if (object instanceof IRI) {
+			// Possibly, another RDFBean
 			// try to construct a bean proxy using provided interface
-			Object proxy = rdfBeanManager.create((URI) object, iface);
+			Object proxy = rdfBeanManager.create((IRI) object, iface);
 			if (proxy != null) {
 				return proxy;
 			}
@@ -438,7 +438,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 						values = Collections.singleton(value);
 					}
 					// Create RDF Container bNode
-					URI ctype = RDF.BAG;
+					IRI ctype = RDF.BAG;
 					if (p.getContainerType() == ContainerType.SEQ) {
 						ctype = RDF.SEQ;
 					} else if (p.getContainerType() == ContainerType.ALT) {
@@ -490,7 +490,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 			if (rbi.getSubjectProperty() == null) {
 				throw new RDFBeanException("RDFSubject property is not declared in " + value.getClass().getName() + " class or its interfaces");
 			}
-			return (URI) rbi.getSubjectProperty().getValue(value);
+			return (IRI) rbi.getSubjectProperty().getValue(value);
 		}
 		// Check if a Resource
 		if (value instanceof Resource) {
@@ -498,14 +498,14 @@ public class RDFBeanDelegator implements InvocationHandler {
 		}
 		// Check if Java URI
 		if (java.net.URI.class.isAssignableFrom(value.getClass())) {
-			return conn.getValueFactory().createURI(((java.net.URI) value).toString());
+			return conn.getValueFactory().createIRI(value.toString());
 		}
 		
 		throw new RDFBeanException("Unexpected value to set: " + value);
 	}
 	
 	
-	private void fireObjectPropertyChanged(Object object, URI property, Object newValue) {
+	private void fireObjectPropertyChanged(Object object, IRI property, Object newValue) {
 		for (ProxyListener l : rdfBeanManager.getProxyListeners()) {
 			l.objectPropertyChanged(object, property, newValue);
 		}
