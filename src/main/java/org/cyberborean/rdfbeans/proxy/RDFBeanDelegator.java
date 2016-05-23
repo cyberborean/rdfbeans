@@ -307,7 +307,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 					item = null;
 					RepositoryResult<Statement> itemst = conn.getStatements(
 							(Resource) object,
-							conn.getValueFactory().createURI(RDF.NAMESPACE + "_" + i),
+							conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i),
 							null, false);
 					if (itemst.hasNext()) {
 						item = unmarshalObject(itemst.next().getObject(), iface);
@@ -451,9 +451,9 @@ public class RDFBeanDelegator implements InvocationHandler {
 						Value object = toRdf(v);
 						if (object != null) {
 							conn.add(collection,
-									conn.getValueFactory().createURI(RDF.NAMESPACE + "_" + i),
+									conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i),
 									object);
-							i++;						
+							i++;
 						}
 					}
 					conn.add(subject, p.getUri(), collection);

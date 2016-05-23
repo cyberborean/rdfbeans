@@ -36,8 +36,8 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.GraphQuery;
 import org.eclipse.rdf4j.query.QueryLanguage;
@@ -105,9 +105,10 @@ import org.eclipse.rdf4j.common.iteration.CloseableIteration;
  */
 public class RDFBeanManager {
 
-	public static final URI BINDINGCLASS_PROPERTY = new URIImpl(
+	public static final ValueFactory valueFactory = SimpleValueFactory.getInstance();
+	public static final IRI BINDINGCLASS_PROPERTY = valueFactory.createIRI(
 			"http://viceversatech.com/rdfbeans/2.0/bindingClass");
-	public static final URI BINDINGIFACE_PROPERTY = new URIImpl(
+	public static final IRI BINDINGIFACE_PROPERTY = valueFactory.createIRI(
 			"http://viceversatech.com/rdfbeans/2.0/bindingIface");
 
 	private RepositoryConnection conn;
@@ -525,8 +526,8 @@ public class RDFBeanManager {
 		// Indentify RDF type
 		Class cls = o.getClass();
 		RDFBeanInfo rbi = RDFBeanInfo.get(cls);
-		URI type = rbi.getRDFType();
-		conn.add(type, BINDINGCLASS_PROPERTY, new LiteralImpl(cls.getName()));
+		IRI type = rbi.getRDFType();
+		conn.add(type, BINDINGCLASS_PROPERTY, conn.getValueFactory().createLiteral(cls.getName()));
 		
 		// introspect RDFBEan
 		SubjectProperty sp = rbi.getSubjectProperty();
@@ -615,7 +616,7 @@ public class RDFBeanManager {
 								Value object = toRdf(v);
 								if (object != null) {
 									conn.add(collection,
-											conn.getValueFactory().createURI(RDF.NAMESPACE, "_" + i++),
+											conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i++),
 											object);
 								}
 							}
@@ -680,7 +681,7 @@ public class RDFBeanManager {
 		}
 		// Check if URI
 		if (java.net.URI.class.isAssignableFrom(value.getClass())) {
-			return conn.getValueFactory().createURI(value.toString());
+			return conn.getValueFactory().createIRI(value.toString());
 		}
 		// Check if a Literal
 		Literal l = getDatatypeMapper().getRDFValue(value, conn.getValueFactory());
@@ -889,7 +890,7 @@ public class RDFBeanManager {
 					item = null;
 					RepositoryResult<Statement> itemst = conn.getStatements(
 							(Resource) object,
-							conn.getValueFactory().createURI(RDF.NAMESPACE + "_" + i),
+							conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i),
 							null, false);
 					try {
 						if (itemst.hasNext()) {
