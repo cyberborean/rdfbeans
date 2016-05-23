@@ -77,7 +77,7 @@ public @interface RDFContainer {
 	 * </ul>
 	 * 
 	 */
-	public enum ContainerType {
+	enum ContainerType {
 		NONE, BAG, SEQ, ALT;
 	}
 }
