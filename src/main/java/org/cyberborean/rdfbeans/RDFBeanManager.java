@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -602,6 +603,14 @@ public class RDFBeanManager {
 							}
 						}
 					} 
+					else if (p.getContainerType() == ContainerType.LIST) {
+						if (p.isInversionOfProperty()) {
+							throw new RDFBeanException("RDF container type is not allowed for a \"inverseOf\" property " +
+									p.getPropertyDescriptor().getName() + " of class " +
+									rbi.getRDFBeanClass().getName());
+						}
+						marshalLinkedList(values, subject, p);
+					}
 					else {
 						if (!p.isInversionOfProperty()) {
 							// Create RDF Container bNode							
@@ -618,7 +627,7 @@ public class RDFBeanManager {
 								Value object = toRdf(v);
 								if (object != null) {
 									conn.add(collection,
-											new URIImpl(RDF.NAMESPACE + "_" + i++),
+											conn.getValueFactory().createURI(RDF.NAMESPACE, "_" + i++),
 											object);
 								}
 							}
@@ -656,22 +665,40 @@ public class RDFBeanManager {
 		return subject;
 	}
 
+	private void marshalLinkedList(Collection values, Resource subject, RDFProperty property) throws RDFBeanException, RepositoryException {
+		BNode listHead = conn.getValueFactory().createBNode();
+		conn.add(subject, property.getUri(), listHead);
+		Iterator<Object> value = values.iterator();
+		do {
+			if (value.hasNext()) {
+				Value valueNode = toRdf(value.next());
+				conn.add(listHead, RDF.FIRST, valueNode);
+			}
+			if (value.hasNext()) {
+				BNode newHead = conn.getValueFactory().createBNode();
+				conn.add(listHead, RDF.REST, newHead);
+				listHead = newHead;
+			} else {
+				conn.add(listHead, RDF.REST, RDF.NIL);
+			}
+		} while (value.hasNext());
+	}
+
 	private Value toRdf(Object value)
 			throws RDFBeanException, RepositoryException {
-		// 1. Check if a Literal
+		// Check if another RDFBean
+		if (RDFBeanInfo.isRdfBean(value)) {
+			return marshal(value, false);
+		}
+		// Check if URI
+		if (java.net.URI.class.isAssignableFrom(value.getClass())) {
+			return conn.getValueFactory().createURI(value.toString());
+		}
+		// Check if a Literal
 		Literal l = getDatatypeMapper().getRDFValue(value, conn.getValueFactory());
 		if (l != null) {
 			return l;
 		}
-		// 2. Check if another RDFBean
-		if (RDFBeanInfo.isRdfBean(value)) {
-			return marshal(value, false);
-		}
-		// 3. Check if URI
-		if (java.net.URI.class.isAssignableFrom(value.getClass())) {
-			return new URIImpl(value.toString());
-		}
-		
 		throw new RDFBeanException("Unsupported class [" + value.getClass().getName() + "] of value " + value.toString());
 	}
 
@@ -891,6 +918,11 @@ public class RDFBeanManager {
 				} while (item != null);
 				// Return collection
 				return items;
+			} else if (conn.hasStatement(r, RDF.FIRST, null, false)) {
+				// Head-Tail list, also collect all items
+				ArrayList<Object> items = new ArrayList<Object>();
+				addList(items, r);
+				return items;
 			}
 		}
 		
@@ -907,6 +939,37 @@ public class RDFBeanManager {
 		
 		//URI ?
 		return java.net.URI.create(object.stringValue());
+	}
+
+	private void addList(List<Object> list, final Resource currentHead) throws OpenRDFException, RDFBeanException {
+		// add the "first" items.
+		RepositoryResult<Statement> firstStatements = conn.getStatements(
+				currentHead,
+				RDF.FIRST,
+				null, false);
+		while (firstStatements.hasNext()) {
+			// multi-headed lists are possible, but flattened here.
+			Object item = unmarshalObject(firstStatements.next().getObject());
+			if (item != null) {
+				list.add(item);
+			}
+		}
+		firstStatements.close();
+
+		// follow non-rdf:nil rest(s), if any.
+		RepositoryResult<Statement> restStatements = conn.getStatements(
+				currentHead,
+				RDF.REST,
+				null, false);
+		while (restStatements.hasNext()) {
+			Value nextHead = restStatements.next().getObject();
+			if (!RDF.NIL.equals(nextHead)) {
+				if (nextHead instanceof BNode) {
+					addList(list, (BNode) nextHead);
+				}
+			}
+		}
+		restStatements.close();
 	}
 
 	// ================== RDFBean dynamic proxy functionality ==================

@@ -1,0 +1,10 @@
+@prefix dt: <http://cyberborean.org/rdfbeans/2.0/test/datatype/>.
+@prefix ex: <http://example.com/list/> .
+
+ex:dataClass
+    a dt:DatatypeTestClass;
+    dt:list (
+        ex:first
+        ex:second
+        ex:last
+    ) .

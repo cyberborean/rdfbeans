@@ -74,10 +74,11 @@ public @interface RDFContainer {
 	 * <li>{@link ContainerType.BAG} - RDF Bag container</li>
 	 * <li>{@link ContainerType.SEQ} - RDF Seq container</li>
 	 * <li>{@link ContainerType.ALT} - RDF Alt container</li>
+	 * <li>{@link ContainerType.LIST} - RDF List container</li>
 	 * </ul>
 	 * 
 	 */
-	public enum ContainerType {
-		NONE, BAG, SEQ, ALT;
+	enum ContainerType {
+		NONE, BAG, SEQ, ALT, LIST;
 	}
 }
