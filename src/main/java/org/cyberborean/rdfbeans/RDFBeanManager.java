@@ -891,6 +891,11 @@ public class RDFBeanManager {
 				} while (item != null);
 				// Return collection
 				return items;
+			} else if (conn.hasStatement(r, RDF.FIRST, null, false)) {
+				// Head-Tail list, also collect all items
+				ArrayList<Object> items = new ArrayList<Object>();
+				addList(items, r);
+				return items;
 			}
 		}
 		
@@ -907,6 +912,37 @@ public class RDFBeanManager {
 		
 		//URI ?
 		return java.net.URI.create(object.stringValue());
+	}
+
+	private void addList(List<Object> list, final Resource currentHead) throws OpenRDFException, RDFBeanException {
+		// add the "first" items.
+		RepositoryResult<Statement> firstStatements = conn.getStatements(
+				currentHead,
+				RDF.FIRST,
+				null, false);
+		while (firstStatements.hasNext()) {
+			// multi-headed lists are possible, but flattened here.
+			Object item = unmarshalObject(firstStatements.next().getObject());
+			if (item != null) {
+				list.add(item);
+			}
+		}
+		firstStatements.close();
+
+		// follow non-rdf:nil rest(s), if any.
+		RepositoryResult<Statement> restStatements = conn.getStatements(
+				currentHead,
+				RDF.REST,
+				null, false);
+		while (restStatements.hasNext()) {
+			Value nextHead = restStatements.next().getObject();
+			if (!RDF.NIL.equals(nextHead)) {
+				if (nextHead instanceof BNode) {
+					addList(list, (BNode) nextHead);
+				}
+			}
+		}
+		restStatements.close();
 	}
 
 	// ================== RDFBean dynamic proxy functionality ==================
