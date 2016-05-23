@@ -29,7 +29,7 @@ import org.cyberborean.rdfbeans.proxy.ProxyListener;
 import org.cyberborean.rdfbeans.reflect.RDFBeanInfo;
 import org.cyberborean.rdfbeans.reflect.RDFProperty;
 import org.cyberborean.rdfbeans.reflect.SubjectProperty;
-import org.eclipse.rdf4j.OpenRDFException;
+import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -215,13 +215,13 @@ public class RDFBeanManager {
 	 * @throws RDFBeanException
 	 *             If the class is not a valid RDFBean or an instance of this
 	 *             class cannot be created
-	 * @throws OpenRDFException 
+	 * @throws RDF4JException
 	 * @see get(Resource)
 	 * @see get(String,Class)
 	 * @see getAll(Class)
 	 */
 
-	public <T> T get(Resource r, Class<T> rdfBeanClass) throws RDFBeanException, OpenRDFException {
+	public <T> T get(Resource r, Class<T> rdfBeanClass) throws RDFBeanException, RDF4JException {
 		if (!this.isResourceExist(r)) {
 			return null;
 		}
@@ -244,12 +244,12 @@ public class RDFBeanManager {
 	 * @throws RDFBeanException
 	 *             If the binding class cannot be detected, is not a valid
 	 *             RDFBean or an instance of this class cannot be created
-	 * @throws OpenRDFException 
+	 * @throws RDF4JException
 	 * @see get(Resource,Class)
 	 * @see get(String,Class)
 	 * @see getAll(Class)
 	 */
-	public Object get(Resource r) throws RDFBeanException, OpenRDFException {
+	public Object get(Resource r) throws RDFBeanException, RDF4JException {
 		if (!this.isResourceExist(r)) {
 			return null;
 		}
@@ -280,13 +280,13 @@ public class RDFBeanManager {
 	 * @throws RDFBeanException
 	 *             If the class is not a valid RDFBean or an instance of this
 	 *             class cannot be created
-	 * @throws OpenRDFException 
+	 * @throws RDF4JException
 	 * @see get(Resource)
 	 * @see get(Resource,Class)
 	 * @see getAll(Class)
 	 */
 	public <T> T get(String stringId, Class<T> rdfBeanClass)
-			throws RDFBeanException, OpenRDFException {
+			throws RDFBeanException, RDF4JException {
 		Resource r = this.getResource(stringId, rdfBeanClass);
 		if (r != null) {
 			return this.get(r, rdfBeanClass);
@@ -757,14 +757,14 @@ public class RDFBeanManager {
 		return null;
 	}
 
-	private <T> T _get(Resource r, Class<T> cls) throws RDFBeanException, OpenRDFException {
+	private <T> T _get(Resource r, Class<T> cls) throws RDFBeanException, RDF4JException {
 		this.objectCache = new WeakHashMap<Resource, Object>();
 		// Unmarshal the resource
 		return unmarshal(r, cls);
 	}
 
 	private <T> T unmarshal(Resource resource, Class<T> cls)
-			throws RDFBeanException, OpenRDFException {
+			throws RDFBeanException, RDF4JException {
 		// Check if the object is already retrieved
 		T o = (T) objectCache.get(resource);
 		if (o != null) {
@@ -787,7 +787,7 @@ public class RDFBeanManager {
 		for (RDFProperty p : rbi.getProperties()) {
 			// Get values
 			IRI predicate = p.getUri();
-			CloseableIteration<Statement, ? extends OpenRDFException> statements;
+			CloseableIteration<Statement, ? extends RDF4JException> statements;
 			if (p.isInversionOfProperty()) {				
 				statements = conn.getStatements(null, predicate, resource, false);
 				if (!statements.hasNext()) {
@@ -870,7 +870,7 @@ public class RDFBeanManager {
 		return o;
 	}
 
-	private Object unmarshalObject(Value object) throws RDFBeanException, OpenRDFException {
+	private Object unmarshalObject(Value object) throws RDFBeanException, RDF4JException {
 		if (object instanceof Literal) {
 			// literal
 			return getDatatypeMapper().getJavaObject((Literal)object);
@@ -930,7 +930,7 @@ public class RDFBeanManager {
 		return java.net.URI.create(object.stringValue());
 	}
 
-	private void addList(List<Object> list, final Resource currentHead) throws OpenRDFException, RDFBeanException {
+	private void addList(List<Object> list, final Resource currentHead) throws RDF4JException, RDFBeanException {
 		// add the "first" items.
 		RepositoryResult<Statement> firstStatements = conn.getStatements(
 				currentHead,
