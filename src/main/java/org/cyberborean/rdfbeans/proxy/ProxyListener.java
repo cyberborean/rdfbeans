@@ -3,8 +3,8 @@
  */
 package org.cyberborean.rdfbeans.proxy;
 
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.URI;
 
 /**
  * An RDFBeanManager listener for dynamic proxies creation and property changing
