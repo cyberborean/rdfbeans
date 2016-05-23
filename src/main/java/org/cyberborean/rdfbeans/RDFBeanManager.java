@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.UUID;
 import java.util.Vector;
 import java.util.WeakHashMap;
 
@@ -37,7 +36,6 @@ import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.URI;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.BNodeImpl;
 import org.eclipse.rdf4j.model.impl.LiteralImpl;
 import org.eclipse.rdf4j.model.impl.URIImpl;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
@@ -543,7 +541,7 @@ public class RDFBeanManager {
 		}
 		if (subject == null) {
 			// Blank node
-			subject = new BNodeImpl("bn_" + UUID.randomUUID().toString());
+			subject = conn.getValueFactory().createBNode();
 		} 
 		else if (hasStatement(subject, null, null)) {
 			// Resource is already in the model
@@ -610,7 +608,7 @@ public class RDFBeanManager {
 							} else if (p.getContainerType() == ContainerType.ALT) {
 								ctype = RDF.ALT;
 							}
-							BNode collection = new BNodeImpl("bn_" + UUID.randomUUID().toString());
+							BNode collection = conn.getValueFactory().createBNode();
 							conn.add(collection, RDF.TYPE, ctype);
 							int i = 1;
 							for (Object v : values) {
