@@ -43,7 +43,8 @@ public class DatatypeTestClass {
 	List listValue;
 	Set setValue;
 	SortedSet sortedSetValue;
-	
+	List headTailList;
+
 	@RDFSubject
 	public String getID() {
 		return "http://cyberborean.org/rdfbeans/2.0/test/datatype/testInstance";
@@ -113,7 +114,7 @@ public class DatatypeTestClass {
 	public List getListValue() {
 		return listValue;
 	}
-	
+
 	@RDF(value="http://cyberborean.org/rdfbeans/2.0/test/datatype/set")
 	@RDFContainer(ContainerType.BAG)
 	public Set getSetValue() {
@@ -125,7 +126,13 @@ public class DatatypeTestClass {
 	public SortedSet getSortedSetValue() {
 		return sortedSetValue;
 	}
-	
+
+	@RDF(value="http://cyberborean.org/rdfbeans/2.0/test/datatype/headTailList")
+	@RDFContainer(ContainerType.LIST)
+	public List getHeadTailListValue() {
+		return headTailList;
+	}
+
 	// Setters
 	
 	public void setID(String id) {
@@ -176,6 +183,6 @@ public class DatatypeTestClass {
 	public void setSortedSetValue(SortedSet sortedSetValue) {
 		this.sortedSetValue = sortedSetValue;
 	}
-	
+	public void setHeadTailList(List headTailList) { this.headTailList = headTailList; }
 
 }
