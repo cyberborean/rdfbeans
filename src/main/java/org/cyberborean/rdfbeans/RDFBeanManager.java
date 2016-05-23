@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -602,6 +603,14 @@ public class RDFBeanManager {
 							}
 						}
 					} 
+					else if (p.getContainerType() == ContainerType.LIST) {
+						if (p.isInversionOfProperty()) {
+							throw new RDFBeanException("RDF container type is not allowed for a \"inverseOf\" property " +
+									p.getPropertyDescriptor().getName() + " of class " +
+									rbi.getRDFBeanClass().getName());
+						}
+						marshalLinkedList(values, subject, p);
+					}
 					else {
 						if (!p.isInversionOfProperty()) {
 							// Create RDF Container bNode							
@@ -618,7 +627,7 @@ public class RDFBeanManager {
 								Value object = toRdf(v);
 								if (object != null) {
 									conn.add(collection,
-											new URIImpl(RDF.NAMESPACE + "_" + i++),
+											conn.getValueFactory().createURI(RDF.NAMESPACE, "_" + i++),
 											object);
 								}
 							}
@@ -654,6 +663,25 @@ public class RDFBeanManager {
 			}
 		}
 		return subject;
+	}
+
+	private void marshalLinkedList(Collection values, Resource subject, RDFProperty property) throws RDFBeanException, RepositoryException {
+		BNode listHead = conn.getValueFactory().createBNode();
+		conn.add(subject, property.getUri(), listHead);
+		Iterator<Object> value = values.iterator();
+		do {
+			if (value.hasNext()) {
+				Value valueNode = toRdf(value.next());
+				conn.add(listHead, RDF.FIRST, valueNode);
+			}
+			if (value.hasNext()) {
+				BNode newHead = conn.getValueFactory().createBNode();
+				conn.add(listHead, RDF.REST, newHead);
+				listHead = newHead;
+			} else {
+				conn.add(listHead, RDF.REST, RDF.NIL);
+			}
+		} while (value.hasNext());
 	}
 
 	private Value toRdf(Object value)
