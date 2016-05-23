@@ -30,6 +30,16 @@
 			<timezone>+5</timezone>
 		</developer>
 	</developers>
+	<contributors>
+		<contributor>
+			<name>Wolfgang Herget</name>
+			<id>wherget</id>
+			<email>wolfgang {dot} herget {at} dfki {dot} de</email>
+			<timezone>+1</timezone>
+			<organization>DFKI GmbH</organization>
+			<organizationUrl>http://www.dfki.de</organizationUrl>
+		</contributor>
+	</contributors>
 
 	<scm>
 		<connection>scm:git:git://github.com/cyberborean/rdfbeans.git</connection>
