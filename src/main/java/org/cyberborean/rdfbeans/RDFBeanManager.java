@@ -686,20 +686,19 @@ public class RDFBeanManager {
 
 	private Value toRdf(Object value)
 			throws RDFBeanException, RepositoryException {
-		// 1. Check if a Literal
+		// Check if another RDFBean
+		if (RDFBeanInfo.isRdfBean(value)) {
+			return marshal(value, false);
+		}
+		// Check if URI
+		if (java.net.URI.class.isAssignableFrom(value.getClass())) {
+			return conn.getValueFactory().createURI(value.toString());
+		}
+		// Check if a Literal
 		Literal l = getDatatypeMapper().getRDFValue(value, conn.getValueFactory());
 		if (l != null) {
 			return l;
 		}
-		// 2. Check if another RDFBean
-		if (RDFBeanInfo.isRdfBean(value)) {
-			return marshal(value, false);
-		}
-		// 3. Check if URI
-		if (java.net.URI.class.isAssignableFrom(value.getClass())) {
-			return new URIImpl(value.toString());
-		}
-		
 		throw new RDFBeanException("Unsupported class [" + value.getClass().getName() + "] of value " + value.toString());
 	}
 
