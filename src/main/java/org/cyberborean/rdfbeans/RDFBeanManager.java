@@ -702,7 +702,7 @@ public class RDFBeanManager {
 		return cls;
 	}
 
-	private Class<?> getBindingClassForType(URI rdfType) throws RDFBeanException, RepositoryException{
+	protected Class<?> getBindingClassForType(URI rdfType) throws RDFBeanException, RepositoryException{
 		Class cls = classCache.get(rdfType);
 		if (cls != null) {
 			return cls;
