@@ -387,16 +387,7 @@ public class RDFBeanManager {
 	
 
 	private boolean hasStatement(Resource s, URI p, Value o) throws RepositoryException {
-		CloseableIteration<Statement, RepositoryException> st = null;
-		try {
-			st = conn.getStatements(s, p, o, false);
-			return st.hasNext();
-		}
-		finally {
-			if (st != null) {
-				st.close();
-			}
-		}
+		return conn.hasStatement(s, p, o, false);
 	}
 
 	/**
