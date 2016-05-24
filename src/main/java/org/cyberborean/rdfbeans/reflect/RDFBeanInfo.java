@@ -34,8 +34,8 @@ import org.cyberborean.rdfbeans.annotations.RDFContainer;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 import org.cyberborean.rdfbeans.annotations.RDFSubject;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 /**
  * RDFBeanInfo.
@@ -72,11 +72,11 @@ public class RDFBeanInfo {
 	private Class rdfBeanClass;
 	private BeanInfo beanInfo;
 	private SubjectProperty subjectProperty = null;
-	private Map<URI, RDFProperty> properties = new HashMap<URI, RDFProperty>();
+	private Map<IRI, RDFProperty> properties = new HashMap<>();
 	private Map<Method, RDFProperty> propertiesByGetter = new HashMap<Method, RDFProperty>();	
 	private Map<Method, RDFProperty> propertiesBySetter = new HashMap<Method, RDFProperty>();
 	private Map<String, String> namespaces = new HashMap<String, String>();
-	private URI rdfType;
+	private IRI rdfType;
 
 	private RDFBeanInfo(Class rdfBeanClass) throws RDFBeanValidationException,
 			IntrospectionException {
@@ -95,7 +95,7 @@ public class RDFBeanInfo {
 			String type = ann.value();
 			if (type != null) {
 				try {
-					rdfType = new URIImpl(type);
+					rdfType = SimpleValueFactory.getInstance().createIRI(type);
 				}
 				catch (IllegalArgumentException iae) {
 					throw new RDFBeanValidationException(
@@ -205,11 +205,11 @@ public class RDFBeanInfo {
 		return properties.values();
 	}
 	
-	public RDFProperty getProperty(URI uri) {
+	public RDFProperty getProperty(IRI uri) {
 		return properties.get(uri);
 	}
 
-	public URI getRDFType() {
+	public IRI getRDFType() {
 		return rdfType;
 	}
 	

@@ -15,8 +15,8 @@ import org.cyberborean.rdfbeans.annotations.RDFContainer;
 import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 /**
  * RDFProperty.
@@ -27,7 +27,7 @@ import org.openrdf.model.impl.URIImpl;
 public class RDFProperty extends AbstractRDFBeanProperty {
 
 	private boolean inversionOfProperty;
-	private URI uri;
+	private IRI uri;
 	private RDFContainer.ContainerType containerType = ContainerType.NONE;
 
 	/**
@@ -57,7 +57,7 @@ public class RDFProperty extends AbstractRDFBeanProperty {
 								+ " method", rdfBeanInfo.getRDFBeanClass());
 			}			
 			try {
-				uri = new URIImpl(uriValue);
+				uri = SimpleValueFactory.getInstance().createIRI(uriValue);
 			}
 			catch (IllegalArgumentException iae) {
 				throw new RDFBeanValidationException(
@@ -85,7 +85,7 @@ public class RDFProperty extends AbstractRDFBeanProperty {
 		return inversionOfProperty;
 	}
 	
-	public URI getUri() {
+	public IRI getUri() {
 		return uri;
 	}
 

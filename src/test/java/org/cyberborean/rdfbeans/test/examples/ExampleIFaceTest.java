@@ -13,7 +13,7 @@ import org.cyberborean.rdfbeans.test.RDFBeansTestBase;
 import org.cyberborean.rdfbeans.test.examples.entities.IPerson;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Resource;
+import org.eclipse.rdf4j.model.Resource;
 
 
 public class ExampleIFaceTest extends RDFBeansTestBase {

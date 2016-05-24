@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.UUID;
 import java.util.Vector;
 import java.util.WeakHashMap;
 
@@ -30,24 +29,22 @@ import org.cyberborean.rdfbeans.proxy.ProxyListener;
 import org.cyberborean.rdfbeans.reflect.RDFBeanInfo;
 import org.cyberborean.rdfbeans.reflect.RDFProperty;
 import org.cyberborean.rdfbeans.reflect.SubjectProperty;
-import org.openrdf.OpenRDFException;
-import org.openrdf.model.BNode;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.BNodeImpl;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.GraphQuery;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
-
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.RDF4JException;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.GraphQuery;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * 
@@ -108,9 +105,10 @@ import info.aduna.iteration.CloseableIteration;
  */
 public class RDFBeanManager {
 
-	public static final URI BINDINGCLASS_PROPERTY = new URIImpl(
+	public static final ValueFactory valueFactory = SimpleValueFactory.getInstance();
+	public static final IRI BINDINGCLASS_PROPERTY = valueFactory.createIRI(
 			"http://viceversatech.com/rdfbeans/2.0/bindingClass");
-	public static final URI BINDINGIFACE_PROPERTY = new URIImpl(
+	public static final IRI BINDINGIFACE_PROPERTY = valueFactory.createIRI(
 			"http://viceversatech.com/rdfbeans/2.0/bindingIface");
 
 	private RepositoryConnection conn;
@@ -120,7 +118,7 @@ public class RDFBeanManager {
 
 	private WeakHashMap<Object, Resource> resourceCache;
 	private WeakHashMap<Resource, Object> objectCache;
-	private Map<URI, Class> classCache;
+	private Map<IRI, Class> classCache;
 	private ProxyInstancesPool proxies;
 	private List<ProxyListener> proxyListeners = new Vector<ProxyListener>();
 
@@ -217,13 +215,13 @@ public class RDFBeanManager {
 	 * @throws RDFBeanException
 	 *             If the class is not a valid RDFBean or an instance of this
 	 *             class cannot be created
-	 * @throws OpenRDFException 
+	 * @throws RDF4JException
 	 * @see get(Resource)
 	 * @see get(String,Class)
 	 * @see getAll(Class)
 	 */
 
-	public <T> T get(Resource r, Class<T> rdfBeanClass) throws RDFBeanException, OpenRDFException {
+	public <T> T get(Resource r, Class<T> rdfBeanClass) throws RDFBeanException, RDF4JException {
 		if (!this.isResourceExist(r)) {
 			return null;
 		}
@@ -246,12 +244,12 @@ public class RDFBeanManager {
 	 * @throws RDFBeanException
 	 *             If the binding class cannot be detected, is not a valid
 	 *             RDFBean or an instance of this class cannot be created
-	 * @throws OpenRDFException 
+	 * @throws RDF4JException
 	 * @see get(Resource,Class)
 	 * @see get(String,Class)
 	 * @see getAll(Class)
 	 */
-	public Object get(Resource r) throws RDFBeanException, OpenRDFException {
+	public Object get(Resource r) throws RDFBeanException, RDF4JException {
 		if (!this.isResourceExist(r)) {
 			return null;
 		}
@@ -282,13 +280,13 @@ public class RDFBeanManager {
 	 * @throws RDFBeanException
 	 *             If the class is not a valid RDFBean or an instance of this
 	 *             class cannot be created
-	 * @throws OpenRDFException 
+	 * @throws RDF4JException
 	 * @see get(Resource)
 	 * @see get(Resource,Class)
 	 * @see getAll(Class)
 	 */
 	public <T> T get(String stringId, Class<T> rdfBeanClass)
-			throws RDFBeanException, OpenRDFException {
+			throws RDFBeanException, RDF4JException {
 		Resource r = this.getResource(stringId, rdfBeanClass);
 		if (r != null) {
 			return this.get(r, rdfBeanClass);
@@ -317,7 +315,7 @@ public class RDFBeanManager {
 	public <T> CloseableIteration<T, Exception> getAll(final Class<T> rdfBeanClass)
 			throws RDFBeanException, RepositoryException {
 		RDFBeanInfo rbi = RDFBeanInfo.get(rdfBeanClass);
-		URI type = rbi.getRDFType();
+		IRI type = rbi.getRDFType();
 		if (type == null) {
 			return new CloseableIteration<T, Exception>() {
 
@@ -387,17 +385,8 @@ public class RDFBeanManager {
 	}
 	
 
-	private boolean hasStatement(Resource s, URI p, Value o) throws RepositoryException {
-		CloseableIteration<Statement, RepositoryException> st = null;
-		try {
-			st = conn.getStatements(s, p, o, false);
-			return st.hasNext();
-		}
-		finally {
-			if (st != null) {
-				st.close();
-			}
-		}
+	private boolean hasStatement(Resource s, IRI p, Value o) throws RepositoryException {
+		return conn.hasStatement(s, p, o, false);
 	}
 
 	/**
@@ -424,7 +413,7 @@ public class RDFBeanManager {
 		SubjectProperty subject = RDFBeanInfo.get(rdfBeanClass)
 				.getSubjectProperty();
 		if (subject != null) {
-			URI r = subject.getUri(stringId);
+			IRI r = subject.getUri(stringId);
 			if (isResourceExist(r)) {
 				return r;
 			}
@@ -537,15 +526,15 @@ public class RDFBeanManager {
 		// Indentify RDF type
 		Class cls = o.getClass();
 		RDFBeanInfo rbi = RDFBeanInfo.get(cls);
-		URI type = rbi.getRDFType();
-		conn.add(type, BINDINGCLASS_PROPERTY, new LiteralImpl(cls.getName()));
+		IRI type = rbi.getRDFType();
+		conn.add(type, BINDINGCLASS_PROPERTY, conn.getValueFactory().createLiteral(cls.getName()));
 		
 		// introspect RDFBEan
 		SubjectProperty sp = rbi.getSubjectProperty();
 		if (sp != null) {
 			Object value = sp.getValue(o);
 			if (value != null) {
-				subject = (URI) value;
+				subject = (IRI) value;
 			} 
 			else {
 				// NOP no pb, will create blank node
@@ -553,7 +542,7 @@ public class RDFBeanManager {
 		}
 		if (subject == null) {
 			// Blank node
-			subject = new BNodeImpl("bn_" + UUID.randomUUID().toString());
+			subject = conn.getValueFactory().createBNode();
 		} 
 		else if (hasStatement(subject, null, null)) {
 			// Resource is already in the model
@@ -572,7 +561,7 @@ public class RDFBeanManager {
 		conn.add(subject, RDF.TYPE, type);
 		// Add properties
 		for (RDFProperty p : rbi.getProperties()) {
-			URI predicate = p.getUri();
+			IRI predicate = p.getUri();
 			Object value = p.getValue(o);
 			if (p.isInversionOfProperty()) {
 				conn.remove((Resource)null, predicate, subject);
@@ -614,20 +603,20 @@ public class RDFBeanManager {
 					else {
 						if (!p.isInversionOfProperty()) {
 							// Create RDF Container bNode							
-							URI ctype = RDF.BAG;
+							IRI ctype = RDF.BAG;
 							if (p.getContainerType() == ContainerType.SEQ) {
 								ctype = RDF.SEQ;
 							} else if (p.getContainerType() == ContainerType.ALT) {
 								ctype = RDF.ALT;
 							}
-							BNode collection = new BNodeImpl("bn_" + UUID.randomUUID().toString());
+							BNode collection = conn.getValueFactory().createBNode();
 							conn.add(collection, RDF.TYPE, ctype);
 							int i = 1;
 							for (Object v : values) {
 								Value object = toRdf(v);
 								if (object != null) {
 									conn.add(collection,
-											conn.getValueFactory().createURI(RDF.NAMESPACE, "_" + i++),
+											conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i++),
 											object);
 								}
 							}
@@ -692,7 +681,7 @@ public class RDFBeanManager {
 		}
 		// Check if URI
 		if (java.net.URI.class.isAssignableFrom(value.getClass())) {
-			return conn.getValueFactory().createURI(value.toString());
+			return conn.getValueFactory().createIRI(value.toString());
 		}
 		// Check if a Literal
 		Literal l = getDatatypeMapper().getRDFValue(value, conn.getValueFactory());
@@ -713,8 +702,8 @@ public class RDFBeanManager {
 			ts = conn.getStatements(r, RDF.TYPE, null, false);
 			if (ts.hasNext()) {
 				Value type = ts.next().getObject();
-				if (type instanceof URI) {
-					cls = getBindingClassForType((URI)type);
+				if (type instanceof IRI) {
+					cls = getBindingClassForType((IRI)type);
 				}
 				else {
 					throw new RDFBeanException("Resource " + r.stringValue() + " has invalid RDF type " + type.stringValue() + ": not a URI");
@@ -729,7 +718,7 @@ public class RDFBeanManager {
 		return cls;
 	}
 
-	protected Class<?> getBindingClassForType(URI rdfType) throws RDFBeanException, RepositoryException{
+	protected Class<?> getBindingClassForType(IRI rdfType) throws RDFBeanException, RepositoryException{
 		Class cls = classCache.get(rdfType);
 		if (cls != null) {
 			return cls;
@@ -768,14 +757,14 @@ public class RDFBeanManager {
 		return null;
 	}
 
-	private <T> T _get(Resource r, Class<T> cls) throws RDFBeanException, OpenRDFException {
+	private <T> T _get(Resource r, Class<T> cls) throws RDFBeanException, RDF4JException {
 		this.objectCache = new WeakHashMap<Resource, Object>();
 		// Unmarshal the resource
 		return unmarshal(r, cls);
 	}
 
 	private <T> T unmarshal(Resource resource, Class<T> cls)
-			throws RDFBeanException, OpenRDFException {
+			throws RDFBeanException, RDF4JException {
 		// Check if the object is already retrieved
 		T o = (T) objectCache.get(resource);
 		if (o != null) {
@@ -797,8 +786,8 @@ public class RDFBeanManager {
 		}
 		for (RDFProperty p : rbi.getProperties()) {
 			// Get values
-			URI predicate = p.getUri();
-			CloseableIteration<Statement, ? extends OpenRDFException> statements;
+			IRI predicate = p.getUri();
+			CloseableIteration<Statement, ? extends RDF4JException> statements;
 			if (p.isInversionOfProperty()) {				
 				statements = conn.getStatements(null, predicate, resource, false);
 				if (!statements.hasNext()) {
@@ -881,7 +870,7 @@ public class RDFBeanManager {
 		return o;
 	}
 
-	private Object unmarshalObject(Value object) throws RDFBeanException, OpenRDFException {
+	private Object unmarshalObject(Value object) throws RDFBeanException, RDF4JException {
 		if (object instanceof Literal) {
 			// literal
 			return getDatatypeMapper().getJavaObject((Literal)object);
@@ -901,7 +890,7 @@ public class RDFBeanManager {
 					item = null;
 					RepositoryResult<Statement> itemst = conn.getStatements(
 							(Resource) object,
-							conn.getValueFactory().createURI(RDF.NAMESPACE + "_" + i),
+							conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i),
 							null, false);
 					try {
 						if (itemst.hasNext()) {
@@ -941,7 +930,7 @@ public class RDFBeanManager {
 		return java.net.URI.create(object.stringValue());
 	}
 
-	private void addList(List<Object> list, final Resource currentHead) throws OpenRDFException, RDFBeanException {
+	private void addList(List<Object> list, final Resource currentHead) throws RDF4JException, RDFBeanException {
 		// add the "first" items.
 		RepositoryResult<Statement> firstStatements = conn.getStatements(
 				currentHead,
@@ -1022,7 +1011,7 @@ public class RDFBeanManager {
 
 	public <T> T create(String id, Class<T> iface) throws RDFBeanException, RepositoryException {
 		RDFBeanInfo rbi = RDFBeanInfo.get(iface);
-		URI uri = resolveUri(id, rbi);
+		IRI uri = resolveUri(id, rbi);
 		if (uri == null) {
 			throw new RDFBeanException("Cannot resolve RDFBean ID: " + id);
 		}
@@ -1068,7 +1057,7 @@ public class RDFBeanManager {
 	 */
 	public <T> Collection<T> createAll(Class<T> iface) throws RDFBeanException, RepositoryException {
 		RDFBeanInfo rbi = RDFBeanInfo.get(iface);
-		URI type = rbi.getRDFType();
+		IRI type = rbi.getRDFType();
 		Collection<T> result = new HashSet<T>(); 
 		if (type == null) {
 			return result;
@@ -1089,10 +1078,10 @@ public class RDFBeanManager {
 		return result;
 	}
 
-	private URI resolveUri(String id, RDFBeanInfo rbi) throws RDFBeanException {
+	private IRI resolveUri(String id, RDFBeanInfo rbi) throws RDFBeanException {
 		try {
 			if (new java.net.URI(id).isAbsolute()) {
-				return conn.getValueFactory().createURI(id);
+				return conn.getValueFactory().createIRI(id);
 			}
 			else {
 				SubjectProperty sp = rbi.getSubjectProperty();

@@ -13,8 +13,8 @@ import java.beans.PropertyDescriptor;
 import org.cyberborean.rdfbeans.annotations.RDFSubject;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 /**
  * SubjectProperty.
@@ -69,24 +69,24 @@ public class SubjectProperty extends AbstractRDFBeanProperty {
 
 	@Override
 	public void setValue(Object rdfBean, Object v) throws RDFBeanException {
-		URI uri;
+		IRI iri;
 		try {
-			uri = new URIImpl(v.toString());
+			iri = SimpleValueFactory.getInstance().createIRI(v.toString());
 		}
-		catch (IllegalArgumentException iae) {		
+		catch (IllegalArgumentException iae) {
 			throw new RDFBeanException(
 					"RDF subject value must be an absolute valid URI: " + v);
 		}
-		super.setValue(rdfBean, getUriPart(uri));
+		super.setValue(rdfBean, getUriPart(iri));
 	}
 
 	public String getPrefix() {
 		return prefix;
 	}
 
-	public URI getUri(String uriPart) throws RDFBeanException {		
+	public IRI getUri(String uriPart) throws RDFBeanException {
 		try {
-			return new URIImpl(prefix + uriPart);
+			return SimpleValueFactory.getInstance().createIRI(prefix + uriPart);
 		}
 		catch (IllegalArgumentException iae) {
 			throw new RDFBeanException(
@@ -95,7 +95,7 @@ public class SubjectProperty extends AbstractRDFBeanProperty {
 		}
 	}
 
-	public String getUriPart(URI subjectUri) {
+	public String getUriPart(IRI subjectUri) {
 		if (!prefix.isEmpty()) {
 			return subjectUri.stringValue().substring(prefix.length());
 		}

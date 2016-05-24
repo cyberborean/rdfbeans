@@ -7,17 +7,18 @@ import org.cyberborean.rdfbeans.test.entities.DatatypeTestClass;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.OpenRDFException;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.sail.memory.MemoryStore;
+import org.eclipse.rdf4j.RDF4JException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -43,9 +44,9 @@ public class ListTest {
     }
 
     @Test
-    public void decodeHeadTailList() throws OpenRDFException, RDFBeanException, URISyntaxException {
+    public void decodeHeadTailList() throws RDF4JException, RDFBeanException, URISyntaxException {
         DatatypeTestClass data =
-        manager.get(repo.getValueFactory().createURI("http://example.com/list/dataClass"), DatatypeTestClass.class);
+        manager.get(repo.getValueFactory().createIRI("http://example.com/list/dataClass"), DatatypeTestClass.class);
         assertThat(data, notNullValue());
         List list = data.getListValue();
         assertThat(list, notNullValue());
@@ -61,7 +62,7 @@ public class ListTest {
         data.setHeadTailList(new ArrayList<>());
         Resource marshaled = manager.add(data);
         RepositoryConnection checkConn = repo.getConnection();
-        org.openrdf.model.URI property = checkConn.getValueFactory().createURI("http://cyberborean.org/rdfbeans/2.0/test/datatype/headTailList");
+        IRI property = checkConn.getValueFactory().createIRI("http://cyberborean.org/rdfbeans/2.0/test/datatype/headTailList");
         RepositoryResult<Statement> listStatement = checkConn.getStatements(marshaled, property, null, false);
         try {
             assertTrue("A list statement is generated", listStatement.hasNext());
@@ -89,7 +90,7 @@ public class ListTest {
         Resource marshaled = manager.add(data);
         RepositoryConnection checkConn = repo.getConnection();
         try {
-            org.openrdf.model.URI property = checkConn.getValueFactory().createURI("http://cyberborean.org/rdfbeans/2.0/test/datatype/headTailList");
+            IRI property = checkConn.getValueFactory().createIRI("http://cyberborean.org/rdfbeans/2.0/test/datatype/headTailList");
             RepositoryResult<Statement> listStatement = checkConn.getStatements(marshaled, property, null, false);
             Resource listHead;
             try {
@@ -102,7 +103,7 @@ public class ListTest {
             assertTrue("First element is encoded as L rdf:first ex:first'", checkConn.hasStatement(
                     listHead,
                     RDF.FIRST,
-                    checkConn.getValueFactory().createURI(elements.get(0).toString()),
+                    checkConn.getValueFactory().createIRI(elements.get(0).toString()),
                     false
             ));
             assertFalse("List does not end after first element", checkConn.hasStatement(
@@ -123,7 +124,7 @@ public class ListTest {
             assertTrue("Second element is encoded as <rest> rdf:first ex:last'", checkConn.hasStatement(
                     listTail,
                     RDF.FIRST,
-                    checkConn.getValueFactory().createURI(elements.get(1).toString()),
+                    checkConn.getValueFactory().createIRI(elements.get(1).toString()),
                     false
             ));
             assertTrue("List ends after second element", checkConn.hasStatement(

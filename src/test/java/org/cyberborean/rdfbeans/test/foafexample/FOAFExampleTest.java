@@ -14,10 +14,9 @@ import org.cyberborean.rdfbeans.test.foafexample.entities.impl.Document;
 import org.cyberborean.rdfbeans.test.foafexample.entities.impl.Person;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.repository.RepositoryException;
-
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * A synthetic test for cascade databinding and RDFBeans classes inheritance  

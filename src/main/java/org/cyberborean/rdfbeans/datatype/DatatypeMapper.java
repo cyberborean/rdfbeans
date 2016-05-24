@@ -8,8 +8,8 @@
  */
 package org.cyberborean.rdfbeans.datatype;
 
-import org.openrdf.model.Literal;
-import org.openrdf.model.ValueFactory;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.ValueFactory;
 
 /**
  * DatatypeMapper.

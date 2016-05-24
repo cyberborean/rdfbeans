@@ -29,21 +29,20 @@ import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
 import org.cyberborean.rdfbeans.reflect.RDFBeanInfo;
 import org.cyberborean.rdfbeans.reflect.RDFProperty;
-import org.openrdf.OpenRDFException;
-import org.openrdf.model.BNode;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.GraphQuery;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
-
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.RDF4JException;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.GraphQuery;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * An InvocationHandler to handle invocations of getter and setter methods
@@ -86,7 +85,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args)
-			throws RDFBeanException, NoSuchMethodException, OpenRDFException {
+			throws RDFBeanException, NoSuchMethodException, RDF4JException {
 		if (method.getDeclaringClass() == Object.class) {
 			// invoke object method
 			if (method.equals(hashCodeMethod)) {
@@ -107,7 +106,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 		}
 		if (method.equals(rdfBeanInfo.getSubjectProperty().getPropertyDescriptor().getReadMethod())) {
 			// Return RDFBean ID
-			return rdfBeanInfo.getSubjectProperty().getUriPart((URI)subject);
+			return rdfBeanInfo.getSubjectProperty().getUriPart((IRI)subject);
 		}
 		if (method.equals(rdfBeanInfo.getSubjectProperty().getPropertyDescriptor().getWriteMethod())) {
 			// no-op
@@ -179,15 +178,15 @@ public class RDFBeanDelegator implements InvocationHandler {
 	 * @param uri
 	 * @return
 	 * @throws RDFBeanException
-	 * @throws OpenRDFException 
+	 * @throws RDF4JException
 	 * @throws RepositoryException 
 	 */
 	@SuppressWarnings({
 		"unchecked", "rawtypes"
 	})
-	private Object getValue(RDFProperty p) throws RDFBeanException, RepositoryException, OpenRDFException {
+	private Object getValue(RDFProperty p) throws RDFBeanException, RepositoryException, RDF4JException {
 		Object result = null;
-		CloseableIteration<Statement, ? extends OpenRDFException> sts;
+		CloseableIteration<Statement, ? extends RDF4JException> sts;
 		if (p.isInversionOfProperty()) {
 			sts = conn.getStatements(null, p.getUri(), subject, false);
 			if (!sts.hasNext()) {
@@ -308,7 +307,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 					item = null;
 					RepositoryResult<Statement> itemst = conn.getStatements(
 							(Resource) object,
-							conn.getValueFactory().createURI(RDF.NAMESPACE + "_" + i),
+							conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i),
 							null, false);
 					if (itemst.hasNext()) {
 						item = unmarshalObject(itemst.next().getObject(), iface);
@@ -323,10 +322,10 @@ public class RDFBeanDelegator implements InvocationHandler {
 				return items; 
 			}
 		}
-		else if (object instanceof URI) {	
-			// Possibly, another RDFBean	
+		else if (object instanceof IRI) {
+			// Possibly, another RDFBean
 			// try to construct a bean proxy using provided interface
-			Object proxy = rdfBeanManager.create((URI) object, iface);
+			Object proxy = rdfBeanManager.create((IRI) object, iface);
 			if (proxy != null) {
 				return proxy;
 			}
@@ -439,7 +438,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 						values = Collections.singleton(value);
 					}
 					// Create RDF Container bNode
-					URI ctype = RDF.BAG;
+					IRI ctype = RDF.BAG;
 					if (p.getContainerType() == ContainerType.SEQ) {
 						ctype = RDF.SEQ;
 					} else if (p.getContainerType() == ContainerType.ALT) {
@@ -452,9 +451,9 @@ public class RDFBeanDelegator implements InvocationHandler {
 						Value object = toRdf(v);
 						if (object != null) {
 							conn.add(collection,
-									conn.getValueFactory().createURI(RDF.NAMESPACE + "_" + i),
+									conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i),
 									object);
-							i++;						
+							i++;
 						}
 					}
 					conn.add(subject, p.getUri(), collection);
@@ -491,7 +490,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 			if (rbi.getSubjectProperty() == null) {
 				throw new RDFBeanException("RDFSubject property is not declared in " + value.getClass().getName() + " class or its interfaces");
 			}
-			return (URI) rbi.getSubjectProperty().getValue(value);
+			return (IRI) rbi.getSubjectProperty().getValue(value);
 		}
 		// Check if a Resource
 		if (value instanceof Resource) {
@@ -499,14 +498,14 @@ public class RDFBeanDelegator implements InvocationHandler {
 		}
 		// Check if Java URI
 		if (java.net.URI.class.isAssignableFrom(value.getClass())) {
-			return conn.getValueFactory().createURI(((java.net.URI) value).toString());
+			return conn.getValueFactory().createIRI(value.toString());
 		}
 		
 		throw new RDFBeanException("Unexpected value to set: " + value);
 	}
 	
 	
-	private void fireObjectPropertyChanged(Object object, URI property, Object newValue) {
+	private void fireObjectPropertyChanged(Object object, IRI property, Object newValue) {
 		for (ProxyListener l : rdfBeanManager.getProxyListeners()) {
 			l.objectPropertyChanged(object, property, newValue);
 		}

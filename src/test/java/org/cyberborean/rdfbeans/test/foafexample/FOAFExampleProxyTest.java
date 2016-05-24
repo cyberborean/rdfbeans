@@ -13,7 +13,7 @@ import org.cyberborean.rdfbeans.test.foafexample.entities.IDocument;
 import org.cyberborean.rdfbeans.test.foafexample.entities.IPerson;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Resource;
+import org.eclipse.rdf4j.model.Resource;
 
 /**
  * A synthetic test for cascade proxy databinding and RDFBeans interfaces inheritance

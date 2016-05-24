@@ -3,8 +3,8 @@
  */
 package org.cyberborean.rdfbeans.proxy;
 
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
 
 /**
  * An RDFBeanManager listener for dynamic proxies creation and property changing
@@ -22,7 +22,7 @@ public interface ProxyListener {
 	 * @param resource
 	 */
 	void objectCreated(Object object, Class<?> cls, Resource resource);
-	
+
 	/**
 	 * Invoked when a RDFBean proxy object property is changed by a setter method  
 	 * 
@@ -30,6 +30,5 @@ public interface ProxyListener {
 	 * @param property
 	 * @param value
 	 */
-	void objectPropertyChanged(Object object, URI property, Object newValue);
-		
+	void objectPropertyChanged(Object object, IRI property, Object newValue);
 }
