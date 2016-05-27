@@ -95,7 +95,7 @@ public class RDFBeanInfo {
 			String type = ann.value();
 			if (type != null) {
 				try {
-					rdfType = SimpleValueFactory.getInstance().createIRI(type);
+					rdfType = SimpleValueFactory.getInstance().createIRI(createUriString(type));
 				}
 				catch (IllegalArgumentException iae) {
 					throw new RDFBeanValidationException(

@@ -57,7 +57,7 @@ public class RDFProperty extends AbstractRDFBeanProperty {
 								+ " method", rdfBeanInfo.getRDFBeanClass());
 			}			
 			try {
-				uri = SimpleValueFactory.getInstance().createIRI(uriValue);
+				uri = SimpleValueFactory.getInstance().createIRI(rdfBeanInfo.createUriString(uriValue));
 			}
 			catch (IllegalArgumentException iae) {
 				throw new RDFBeanValidationException(
