@@ -150,6 +150,13 @@
 					<version>2.10.3</version>
 					<configuration>
 						<failOnError>true</failOnError>
+						<doclet>ch.raffael.doclets.pegdown.PegdownDoclet</doclet>
+						<docletArtifact>
+							<groupId>ch.raffael.pegdown-doclet</groupId>
+							<artifactId>pegdown-doclet</artifactId>
+							<version>1.3</version>
+						</docletArtifact>
+						<useStandardDocletOptions>true</useStandardDocletOptions>
 					</configuration>
 				</plugin>
 			</plugins>
