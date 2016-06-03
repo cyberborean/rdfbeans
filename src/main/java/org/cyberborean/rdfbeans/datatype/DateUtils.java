@@ -24,11 +24,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * <h1>DateUtils</h1>
- * 
- * <p></p>
- * 
- * @version $Id: DateUtils.java 44 2014-07-01 13:33:00Z alexeya $
+ * Utilities for parsing dates.
+ *
  * @author Alex Alishevskikh, alexeya(at)gmail.com
  * 
  */
