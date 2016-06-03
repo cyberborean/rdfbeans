@@ -40,8 +40,7 @@ import java.lang.annotation.Target;
 public @interface RDFNamespaces {
 
 	/**
-	 * Namespace prefix specification (<code>&lt:prefix&gt; = &lt;uri&gt;</code>
-	 * )
+	 * Namespace prefix specification (<code>&lt;prefix&gt; = &lt;uri&gt;</code>)
 	 */
 	String[] value();
 

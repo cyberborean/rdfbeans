@@ -48,7 +48,7 @@ import java.lang.annotation.Target;
  * <pre>
  * &#64;RDF("foaf:knows")
  * &#64;RDFContainer(ContainerType.NONE) // -- this is unnecessary public
- * Set<Person> getKnows() { 
+ * Set&lt;Person&gt; getKnows() {
  * ...
  * </pre>
  * 
