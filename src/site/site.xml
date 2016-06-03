@@ -10,8 +10,8 @@
 		<menu ref="reports" />
 	</body>
 	<skin>
-    	<groupId>org.apache.maven.skins</groupId>
-    	<artifactId>maven-fluido-skin</artifactId>
-    	<version>1.4</version>
-  	</skin>
+		<groupId>org.apache.maven.skins</groupId>
+		<artifactId>maven-fluido-skin</artifactId>
+		<version>1.5</version>
+	</skin>
 </project>
