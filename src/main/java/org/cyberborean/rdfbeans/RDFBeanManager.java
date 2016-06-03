@@ -180,7 +180,7 @@ public class RDFBeanManager {
 	 * 
 	 * <p>
 	 * If no resource for the given object exists, or the object is anonymous
-	 * RDFBean represented with a {@link BlankNode}, the method works like
+	 * RDFBean represented with a BlankNode, the method works like
 	 * {@link #add(Object) add()}.
 	 * 
 	 * <p>
