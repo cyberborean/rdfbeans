@@ -1,7 +1,7 @@
-<project name="RDFBeans">	
+<project name="RDFBeans">
 	<body>
 		<menu name="RDFBeans">
-			<item name="Overview" href="index.html" />			
+			<item name="Overview" href="index.html" />
 			<item name="Usage" href="usage.html" />
 			<item name="RDFBean format" href="rdfbean.html" />
 			<item name="Download" href="download.html" />
