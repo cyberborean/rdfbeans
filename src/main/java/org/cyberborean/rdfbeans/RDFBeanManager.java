@@ -125,7 +125,7 @@ public class RDFBeanManager {
 	/**
 	 * Creates new RDFBeanManager instance upon the given RDF2Go model.
 	 * 
-	 * @param model
+	 * @param conn
 	 */
 	public RDFBeanManager(RepositoryConnection conn) {
 		this.conn = conn;
@@ -430,8 +430,7 @@ public class RDFBeanManager {
 	 * Otherwise, the transaction is delayed until the <code>commit()</code>
 	 * method of the underlying Model implementation is invoked.
 	 * 
-	 * @param r
-	 *            Resource URI
+	 * @param uri Resource URI
 	 * @throws RepositoryException 
 	 * @see delete(String,Class)
 	 * @see setAutocommit(boolean)
@@ -978,7 +977,7 @@ public class RDFBeanManager {
 	 * @throws RepositoryException 
 	 *             
 	 * @see create(String,Class)
-	 * @see create(Resource)
+	 * @param <T>
 	 */
 
 	public <T> T create(Resource r, Class<T> iface) throws RDFBeanException, RepositoryException {
@@ -1006,7 +1005,6 @@ public class RDFBeanManager {
 	 * @throws RepositoryException 
 	 *             
 	 * @see create(Resource,Class)
-	 * @see create(Resource)
 	 */
 
 	public <T> T create(String id, Class<T> iface) throws RDFBeanException, RepositoryException {

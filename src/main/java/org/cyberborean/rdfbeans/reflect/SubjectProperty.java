@@ -31,7 +31,7 @@ public class SubjectProperty extends AbstractRDFBeanProperty {
 	 * @param propertyDescriptor
 	 * @param rdfBeanInfo
 	 * @param annotation
-	 * @throws RDFBeanException
+	 * @throws RDFBeanValidationException
 	 */
 	public SubjectProperty(PropertyDescriptor propertyDescriptor,
 			RDFBeanInfo rdfBeanInfo, RDFSubject annotation)
