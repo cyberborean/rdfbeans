@@ -90,29 +90,7 @@ public class RDFBeanInfo {
 
 	private void introspect() throws RDFBeanValidationException {
 		initNamespaces();
-		RDFBean ann = ReflectionUtil.getClassAnnotation(rdfBeanClass, RDFBean.class);
-		if (ann != null) {			
-			String type = ann.value();
-			if (type != null) {
-				try {
-					rdfType = SimpleValueFactory.getInstance().createIRI(createUriString(type));
-				}
-				catch (IllegalArgumentException iae) {
-					throw new RDFBeanValidationException(
-							"RDF type parameter of " + RDFBean.class.getName() + " annotation on "
-							+ rdfBeanClass.getName() + " class must be an absolute valid URI: " + type, rdfBeanClass);
-				}
-			} else {
-				throw new RDFBeanValidationException(
-						"Required RDF type parameter is missing in "
-								+ RDFBean.class.getName() + " annotation on "
-								+ rdfBeanClass.getName() + " class", rdfBeanClass);
-			}
-		} else {
-			throw new RDFBeanValidationException("Not an RDFBean: "
-					+ RDFBean.class.getName() + " annotation is missing on "
-					+ rdfBeanClass.getName() + " class or its interfaces", rdfBeanClass);
-		}
+		initBeanType();
 		for (PropertyDescriptor pd : beanInfo.getPropertyDescriptors()) {
 			Method getter = pd.getReadMethod();
 			if (getter != null) {
@@ -148,6 +126,32 @@ public class RDFBeanInfo {
 					}
 				}
 			}			
+		}
+	}
+
+	private void initBeanType() throws RDFBeanValidationException {
+		RDFBean ann = ReflectionUtil.getClassAnnotation(rdfBeanClass, RDFBean.class);
+		if (ann == null) {
+			throw new RDFBeanValidationException("Not an RDFBean: "
+					+ RDFBean.class.getName() + " annotation is missing on "
+					+ rdfBeanClass.getName() + " class or its interfaces", rdfBeanClass);
+		} else {
+			String type = ann.value();
+			if (type != null) {
+				try {
+					rdfType = SimpleValueFactory.getInstance().createIRI(createUriString(type));
+				}
+				catch (IllegalArgumentException iae) {
+					throw new RDFBeanValidationException(
+							"RDF type parameter of " + RDFBean.class.getName() + " annotation on "
+									+ rdfBeanClass.getName() + " class must be an absolute valid URI: " + type, rdfBeanClass);
+				}
+			} else {
+				throw new RDFBeanValidationException(
+						"Required RDF type parameter is missing in "
+								+ RDFBean.class.getName() + " annotation on "
+								+ rdfBeanClass.getName() + " class", rdfBeanClass);
+			}
 		}
 	}
 
