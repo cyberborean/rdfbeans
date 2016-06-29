@@ -53,20 +53,14 @@ public class ReflectionUtil {
 		}
 	}
 	
-	public static Annotation getMethodAnnotation(Method method, Class... annotationTypes) {
-		Annotation ann = null;
-		for (Class annType: annotationTypes) {
-			ann = method.getAnnotation(annType);
-			if (ann != null) {
-				return ann;
-			}
-		}
+	public static <T extends Annotation> T getMethodAnnotation(Method method, Class<T> annotationType) {
+		T ann = method.getAnnotation(annotationType);
 		if (ann == null) {
 			// Inspect interface methods
 			for (Class iface: method.getDeclaringClass().getInterfaces()) {
 				for (Method otherMethod: iface.getMethods()) {
 					if (isMatchingMethodSignatures(method, otherMethod)) {
-						return getMethodAnnotation(otherMethod, annotationTypes);
+						return getMethodAnnotation(otherMethod, annotationType);
 					}
 				}
 			}
@@ -100,6 +94,4 @@ public class ReflectionUtil {
 		}
 		return allInterfaces.toArray(new Class[allInterfaces.size()]);
 	}
-	}
-
 }

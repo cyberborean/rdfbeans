@@ -68,7 +68,7 @@ public class RDFBeanInfo {
 	public static boolean isRdfBeanClass(Class cls) {
 		return ReflectionUtil.getClassAnnotation(cls, RDFBean.class) != null;
 	}
-	
+
 	private Class rdfBeanClass;
 	private BeanInfo beanInfo;
 	private SubjectProperty subjectProperty = null;
@@ -92,41 +92,54 @@ public class RDFBeanInfo {
 		initNamespaces();
 		initBeanType();
 		for (PropertyDescriptor pd : beanInfo.getPropertyDescriptors()) {
-			Method getter = pd.getReadMethod();
-			if (getter != null) {
-				Annotation mAnn = ReflectionUtil.getMethodAnnotation(getter, RDF.class, RDFSubject.class);
-				if (mAnn != null) {
-					if (mAnn.annotationType().equals(RDF.class)) {
-						Annotation cAnn = ReflectionUtil.getMethodAnnotation(getter, RDFContainer.class);
-						RDFProperty p = new RDFProperty(pd, this, (RDF) mAnn, (RDFContainer) cAnn);
-						propertiesByGetter.put(getter, p);
-						Method setter = pd.getWriteMethod();
-						if (setter != null) {
-							/*if (p.isInversionOfProperty()) {
-								throw new RDFBeanValidationException("The property '" + pd.getDisplayName() + "' is virtual " +
-										"and may not have a setter method '" + setter.getName() + "' in " + rdfBeanClass.getName(), rdfBeanClass);
-							}*/
-							propertiesBySetter.put(setter, p);
-						}
-						if (pd instanceof IndexedPropertyDescriptor) {
-							IndexedPropertyDescriptor ipd = ((IndexedPropertyDescriptor)pd);
-							Method igetter = ipd.getIndexedReadMethod();
-							if (igetter != null) {
-								propertiesByGetter.put(igetter, p);
-							}
-							Method isetter = ipd.getIndexedWriteMethod();
-							if (isetter != null) {
-								propertiesBySetter.put(isetter, p);
-							}
-						}
-						properties.put(p.getUri(), p);
-					} else if (mAnn.annotationType().equals(RDFSubject.class)
-							&& (subjectProperty == null)) {
-						subjectProperty = new SubjectProperty(pd, this, (RDFSubject) mAnn);
+			checkSubjectProperty(pd);
+			RDF annotation = checkAnnotation(pd, RDF.class);
+			if (annotation != null) {
+				RDFContainer container = checkAnnotation(pd, RDFContainer.class);
+				RDFProperty p = new RDFProperty(pd, this, annotation, container);
+				Method getter = pd.getReadMethod();
+				if (getter != null) {
+					propertiesByGetter.put(getter, p);
+				}
+				Method setter = pd.getWriteMethod();
+				if (setter != null) {
+					propertiesBySetter.put(setter, p);
+				}
+				if (pd instanceof IndexedPropertyDescriptor) {
+					IndexedPropertyDescriptor ipd = ((IndexedPropertyDescriptor)pd);
+					Method igetter = ipd.getIndexedReadMethod();
+					if (igetter != null) {
+						propertiesByGetter.put(igetter, p);
+					}
+					Method isetter = ipd.getIndexedWriteMethod();
+					if (isetter != null) {
+						propertiesBySetter.put(isetter, p);
 					}
 				}
-			}			
+				properties.put(p.getUri(), p);
+			}
 		}
+	}
+
+	private void checkSubjectProperty(PropertyDescriptor pd) throws RDFBeanValidationException {
+		RDFSubject annotation = checkAnnotation(pd, RDFSubject.class);
+		if (annotation != null) {
+			if (subjectProperty == null) {
+				subjectProperty = new SubjectProperty(pd, this, annotation);
+			}
+		}
+	}
+
+	private <T extends Annotation> T checkAnnotation(PropertyDescriptor pd, Class<T> theClass) {
+		T annotation;
+		Method getter = pd.getReadMethod();
+		if (getter != null) {
+			annotation = ReflectionUtil.getMethodAnnotation(getter, theClass);
+		} else {
+			Method setter = pd.getWriteMethod();
+			annotation = ReflectionUtil.getMethodAnnotation(setter, theClass);
+		}
+		return annotation;
 	}
 
 	private void initBeanType() throws RDFBeanValidationException {
@@ -183,7 +196,7 @@ public class RDFBeanInfo {
 		}
 		return s;
 	}
-	
+
 	public Class getRDFBeanClass() {
 		return rdfBeanClass;
 	}
