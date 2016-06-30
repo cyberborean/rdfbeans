@@ -171,18 +171,26 @@ public class RDFBeanInfo {
 	private void initNamespaces() throws RDFBeanValidationException {
 		List<RDFNamespaces> nsAnns = ReflectionUtil.getAllClassAnnotations(rdfBeanClass, RDFNamespaces.class);
 		for (RDFNamespaces nsAnn: nsAnns) {
-			for (String s: nsAnn.value()) {		
-				String[] ss = s.split("=", 2);
-				if (ss.length == 2) {
-					String prefix = ss[0].trim();
-					String value = ss[1].trim();
-					if (!namespaces.containsKey(prefix)) {
-						namespaces.put(prefix, value);
-					}
+			registerNamespaces(nsAnn);
+		}
+	}
+
+	private void registerNamespaces(RDFNamespaces annotation) throws RDFBeanValidationException {
+		for (String declaration: annotation.value()) {
+			String[] split = declaration.split("=", 2);
+			if (split.length == 2) {
+				String prefix = split[0].trim();
+				String value = split[1].trim();
+				if (namespaces.containsKey(prefix)) {
+					String currentValue = namespaces.get(prefix);
+					throw new RDFBeanValidationException("Tried to re-declare namespace: '" + prefix + "'," + 
+							"already defined as '" + currentValue + "'", rdfBeanClass);
+				} else {
+					namespaces.put(prefix, value);
 				}
-				else {
-					throw new RDFBeanValidationException("Wrong namespace declaration syntax: '" + s + "'", rdfBeanClass);
-				}
+			}
+			else {
+				throw new RDFBeanValidationException("Wrong namespace declaration syntax: '" + declaration + "'", rdfBeanClass);
 			}
 		}
 	}
