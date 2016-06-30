@@ -40,6 +40,6 @@ Features (version 2.0)
 
 See more
 --------
- * [RDFBeans usage](/usage.html)
- * [RDFBean annotations](/rdfbean.html)
- * [RDFBeans API JavaDocs](/apidocs/index.html)
+ * [RDFBeans usage](usage.html)
+ * [RDFBean annotations](rdfbean.html)
+ * [RDFBeans API JavaDocs](apidocs/index.html)
