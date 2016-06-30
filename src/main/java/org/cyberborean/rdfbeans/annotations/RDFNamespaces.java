@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
  * @author alex
  * 
  */
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.PACKAGE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RDFNamespaces {
 

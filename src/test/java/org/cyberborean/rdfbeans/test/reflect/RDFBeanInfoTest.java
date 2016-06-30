@@ -35,11 +35,13 @@ public class RDFBeanInfoTest {
 	public void shouldReadNamespaces() {
 		Map<String, String> namespaces = info.getRDFNamespaces();
 		assertThat(namespaces, notNullValue());
-		assertThat(namespaces.size(), is(2));
+		assertThat(namespaces.size(), is(3));
 		assertThat(namespaces.containsKey("ex"), is(true));
 		assertThat(namespaces.get("ex"), equalTo("http://example.org/"));
 		assertThat(namespaces.containsKey("ex2"), is(true));
 		assertThat(namespaces.get("ex2"), equalTo("http://example.com/withSpaces#"));
+		assertThat(namespaces.containsKey("pkg"), is(true));
+		assertThat(namespaces.get("pkg"), equalTo("http://example.com/package-ns#"));
 	}
 
 	@Test

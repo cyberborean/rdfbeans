@@ -68,6 +68,11 @@ public class ReflectionUtil {
 		return ann;
 	}
 
+	public static <A extends Annotation> A getPackageAnnotation(Class<?> cls, Class<A> annotationType) {
+		Package p = cls.getPackage();
+		return p == null ? null : p.getAnnotation(annotationType);
+	}
+
 	/**
 	 * @param method
 	 * @param otherMethod

@@ -169,6 +169,10 @@ public class RDFBeanInfo {
 	}
 
 	private void initNamespaces() throws RDFBeanValidationException {
+		RDFNamespaces packageNamespaces = ReflectionUtil.getPackageAnnotation(rdfBeanClass, RDFNamespaces.class);
+		if (packageNamespaces != null) {
+			registerNamespaces(packageNamespaces);
+		}
 		List<RDFNamespaces> nsAnns = ReflectionUtil.getAllClassAnnotations(rdfBeanClass, RDFNamespaces.class);
 		for (RDFNamespaces nsAnn: nsAnns) {
 			registerNamespaces(nsAnn);
