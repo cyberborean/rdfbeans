@@ -22,6 +22,11 @@ public class RDFBeanInfoTest {
 		@RDF("ex2:test")
 		public abstract Object getTest();
 		public abstract void setTest(Object test);
+
+		@RDF("pkg:field")
+		private Object field;
+		public abstract Object getField();
+		public abstract void setField(Object field);
 	}
 
 	private static RDFBeanInfo info;
@@ -54,5 +59,11 @@ public class RDFBeanInfoTest {
 	public void shouldApplyNamespaceToProperty() {
 		IRI expected = SimpleValueFactory.getInstance().createIRI("http://example.com/withSpaces#test");
 		assertThat(info.getProperty(expected), notNullValue());
+	}
+
+	@Test
+	public void annotationMayBeOnField() {
+		IRI field = SimpleValueFactory.getInstance().createIRI("http://example.com/package-ns#field");
+		assertThat(info.getProperty(field), notNullValue());
 	}
 }

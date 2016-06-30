@@ -19,6 +19,7 @@ import java.beans.MethodDescriptor;
 import java.beans.PropertyDescriptor;
 import java.beans.SimpleBeanInfo;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -138,6 +139,19 @@ public class RDFBeanInfo {
 		} else {
 			Method setter = pd.getWriteMethod();
 			annotation = ReflectionUtil.getMethodAnnotation(setter, theClass);
+		}
+		if (annotation == null) {
+			// last resort: try an appropriately named field (as with e.g. Lombok)
+			try {
+				Field field = rdfBeanClass.getDeclaredField(pd.getName());
+				if (pd.getPropertyType().isAssignableFrom(field.getType())) {
+					// field might be more specific, but needs to be compatible
+					annotation = field.getDeclaredAnnotation(theClass);
+				}
+			} catch (NoSuchFieldException e) {
+				// no luck then
+				return null;
+			}
 		}
 		return annotation;
 	}
