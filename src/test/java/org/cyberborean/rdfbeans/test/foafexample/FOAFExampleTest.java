@@ -129,11 +129,11 @@ public class FOAFExampleTest extends RDFBeansTestBase {
     @Test
     public void testGetAll() throws Exception {                
     	CloseableIteration<Person, Exception> iter = manager.getAll(Person.class);
-        Set s = new HashSet();
+        Set<Person> s = new HashSet<>();
         while (iter.hasNext()) {
             Object o = iter.next();
             assertTrue(o instanceof Person);
-            s.add(o);
+            s.add((Person)o);
         }
         iter.close();
         assertEquals(s.size(), 3);
