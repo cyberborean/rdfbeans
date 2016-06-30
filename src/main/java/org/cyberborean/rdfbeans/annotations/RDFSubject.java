@@ -26,39 +26,36 @@ import java.lang.annotation.Target;
  * Applied to: Method declaration <br>
  * Parameter: prefix (String, optional)
  * 
- * <p>
  * &#64;RDFSubject annotation indicates that the annotated getter method returns
  * a String value of RDFBean identifier.
  * 
- * <p>
  * The prefix parameter defines the optional prefix part of RDFBean identifier
  * and must contain either a namespace URI or a reference to namespace defined
  * by {@link RDFNamespaces} annotation.
- * <p>
+ * 
  * If prefix parameter is set, it is expected that the method returns a local
  * part of RDFBean identifier. Otherwise, the method must return a value of
  * RDFBean identifier as a fully qualified name.
  * 
- * <p>
  * Examples:
  * 
- * <pre>
- * &#64;RDFSubject(prefix="http://rdfbeans.example.com/persons/") 
- * public String  getPersonId() {
+ * ```
+ * {@literal @}RDFSubject(prefix="http://rdfbeans.example.com/persons/") 
+ *  public String  getPersonId() {
  * ...
- * </pre>
+ * ```
  * 
- * <pre>
- * &#64;RDFSubject(prefix="persons:") 
- * public String getPersonId() { 
- * ...
- * </pre>
+ * ```
+ * {@literal @}RDFSubject(prefix="persons:") 
+ *  public String getPersonId() { 
+ *  ...
+ * ```
  * 
- * <pre>
- * &#64;RDFSubject 
- * public String getPersonId() { 
- * ... // A fully qualified name must be returned
- * </pre>
+ * ```
+ * {@literal @}RDFSubject 
+ *  public String getPersonId() { 
+ *  ... // A fully qualified name must be returned
+ * ```
  * 
  * 
  * 

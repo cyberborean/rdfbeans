@@ -40,16 +40,16 @@ import java.lang.annotation.Target;
  * Examples:
  * ---------
  * ```
- * @RDF("foaf:nick")
- * @RDFContainer(ContainerType.ALT)
- * public String[] getNick() { 
+ * {@literal @}RDF("foaf:nick")
+ * {@literal @}RDFContainer(ContainerType.ALT)
+ *  public String[] getNick() { 
  * ...
  * ```
  *
  * ```
- * @RDF("foaf:knows")
- * @RDFContainer(ContainerType.NONE) // -- this is unnecessary public
- * Set<Person> getKnows() {
+ * {@literal @}RDF("foaf:knows")
+ * {@literal @}RDFContainer(ContainerType.NONE) // -- this is unnecessary public
+ *  Set<Person> getKnows() {
  * ...
  * ```
  *
