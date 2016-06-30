@@ -22,7 +22,7 @@ import java.util.List;
  *
  */
 public class ReflectionUtil {
-	
+
 	public static <A extends Annotation> A getClassAnnotation(Class<?> cls, Class<A> annotationType) {
 		A ann = cls.getAnnotation(annotationType);
 		if (ann == null) {
@@ -36,23 +36,23 @@ public class ReflectionUtil {
 		}
 		return ann;
 	}
-	
+
 	public static <A extends Annotation> List<A> getAllClassAnnotations(Class<?> cls, Class<A> annotationType) {
 		List<A> results = new ArrayList<A>();
 		findClassAnnotations(cls, annotationType, results);
 		return results;
 	}
-	
+
 	private static <A extends Annotation> void findClassAnnotations(Class<?> cls, Class<A> annotationType, List<A> list) {
 		A ann =  cls.getAnnotation(annotationType);
 		if (ann != null) {
 			list.add(ann);
-		}		
+		}
 		for (Class iface: cls.getInterfaces()) {
 			findClassAnnotations(iface, annotationType, list);
 		}
 	}
-	
+
 	public static <T extends Annotation> T getMethodAnnotation(Method method, Class<T> annotationType) {
 		T ann = method.getAnnotation(annotationType);
 		if (ann == null) {
