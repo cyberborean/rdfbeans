@@ -10,7 +10,7 @@ import java.util.Map;
 
 /**
  * 
- * Base class for {@link WeakCacheMap} and {@link SoftCacheMap}
+ * Base class for {@link WeakCacheMap}
  * 
  */
 

@@ -33,7 +33,7 @@ public class RDFProperty extends AbstractRDFBeanProperty {
 	/**
 	 * @param propertyDescriptor
 	 * @param rdfBeanInfo
-	 * @throws RDFBeanException
+	 * @throws RDFBeanValidationException
 	 */
 	public RDFProperty(PropertyDescriptor propertyDescriptor,
 			RDFBeanInfo rdfBeanInfo, RDF annotation,

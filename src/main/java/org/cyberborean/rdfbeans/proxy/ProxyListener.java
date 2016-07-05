@@ -28,7 +28,7 @@ public interface ProxyListener {
 	 * 
 	 * @param object
 	 * @param property
-	 * @param value
+	 * @param newValue
 	 */
 	void objectPropertyChanged(Object object, IRI property, Object newValue);
 }

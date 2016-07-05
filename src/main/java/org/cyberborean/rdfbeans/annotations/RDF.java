@@ -23,26 +23,21 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Applied to: Method declaration <br>
+ * Applied to: Method declaration<br>
  * Value: String (required)
  * 
- * <p>
- * 
  * &#64;RDF annotation declares a RDFBean data property. The annotations must be
- *       applied to getter methods of RDFBean class or interface.
+ * applied to getter methods of RDFBean class or interface.
  * 
- *       <p>
- *       The mandatory String value defines a qualified name or absolute URI of
- *       an RDF property (predicate) mapped to this property.
+ * The mandatory String value defines a qualified name or absolute URI of
+ * an RDF property (predicate) mapped to this property.
  * 
- *       <p>
- *       Example:
- * 
- *       <pre>
- * &#64;RDF("foaf:name") 
+ * Example:
+ *
+ * ```
+ * {@literal @}RDF("foaf:name")
  * public String getName() { ...
- * </pre>
- * 
+ * ```
  * 
  * @version $Id: RDF.java 30 2011-09-28 06:46:32Z alexeya $
  * @author Alex Alishevskikh, alexeya(at)gmail.com
