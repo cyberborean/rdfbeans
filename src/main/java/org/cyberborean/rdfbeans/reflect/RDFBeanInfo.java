@@ -132,13 +132,15 @@ public class RDFBeanInfo {
 	}
 
 	private <T extends Annotation> T checkAnnotation(PropertyDescriptor pd, Class<T> theClass) {
-		T annotation;
+		T annotation = null;
 		Method getter = pd.getReadMethod();
 		if (getter != null) {
 			annotation = ReflectionUtil.getMethodAnnotation(getter, theClass);
 		} else {
 			Method setter = pd.getWriteMethod();
-			annotation = ReflectionUtil.getMethodAnnotation(setter, theClass);
+			if (setter != null) {
+				annotation = ReflectionUtil.getMethodAnnotation(setter, theClass);
+			}
 		}
 		if (annotation == null) {
 			// last resort: try an appropriately named field (as with e.g. Lombok)
