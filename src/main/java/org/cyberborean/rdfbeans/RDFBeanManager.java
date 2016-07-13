@@ -698,7 +698,7 @@ public class RDFBeanManager {
 		Class<?> cls = null;
 		try (CloseableIteration<Statement, RepositoryException> ts =
 				conn.getStatements(r, RDF.TYPE, null, false)) {
-			if (ts.hasNext()) {
+			while (cls == null && ts.hasNext()) {
 				Value type = ts.next().getObject();
 				if (type instanceof IRI) {
 					cls = getBindingClassForType((IRI)type);
