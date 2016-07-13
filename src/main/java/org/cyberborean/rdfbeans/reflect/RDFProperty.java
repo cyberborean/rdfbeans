@@ -29,6 +29,7 @@ public class RDFProperty extends AbstractRDFBeanProperty {
 	private boolean inversionOfProperty;
 	private IRI uri;
 	private RDFContainer.ContainerType containerType = ContainerType.NONE;
+	private RDFBeanInfo beanInfo;
 
 	/**
 	 * @param propertyDescriptor
@@ -39,45 +40,54 @@ public class RDFProperty extends AbstractRDFBeanProperty {
 			RDFBeanInfo rdfBeanInfo, RDF annotation,
 			RDFContainer containerAnnotation) throws RDFBeanValidationException {
 		super(propertyDescriptor);
-		if (annotation != null) {
-			String uriValue = null;
-			if ((annotation.inverseOf() != null) && !annotation.inverseOf().isEmpty()) {
-				uriValue = annotation.inverseOf();
-				inversionOfProperty = true;
-			}
-			else if ((annotation.value() != null) && !annotation.value().isEmpty()){
-				uriValue = annotation.value();
-				inversionOfProperty = false;
-			}
-			if (uriValue == null) {
-				throw new RDFBeanValidationException(
-						"RDF property or \"inverseOf\" parameter is missing in "
-								+ RDF.class.getName() + " annotation on  "
-								+ propertyDescriptor.getReadMethod().getName()
-								+ " method", rdfBeanInfo.getRDFBeanClass());
-			}			
-			try {
-				uri = SimpleValueFactory.getInstance().createIRI(rdfBeanInfo.createUriString(uriValue));
-			}
-			catch (IllegalArgumentException iae) {
-				throw new RDFBeanValidationException(
-						"RDF property URI parameter of " + RDF.class.getName()
-								+ " annotation on "
-								+ propertyDescriptor.getReadMethod().getName()
-								+ " method  must be an absolute valid URI: "
-								+ uriValue, rdfBeanInfo.getRDFBeanClass());
-			}
-			if (containerAnnotation != null) {
-				if (inversionOfProperty) {
-					throw new RDFBeanValidationException(
-							RDFContainer.class.getSimpleName() + " annotation  on " + propertyDescriptor.getReadMethod().getName()
-							+ " method is not allowed (\"inverseOf\" property)", rdfBeanInfo.getRDFBeanClass());							
-				}
-				containerType = containerAnnotation.value();
-			}
-		} else {
+		if (annotation == null) {
 			throw new RDFBeanValidationException(rdfBeanInfo.getRDFBeanClass(),
 					new NullPointerException());
+		}
+		beanInfo = rdfBeanInfo;
+		initUri(annotation);
+		initContainerType(containerAnnotation);
+	}
+
+	private void initContainerType(RDFContainer containerAnnotation) throws RDFBeanValidationException {
+		if (containerAnnotation != null) {
+			if (inversionOfProperty) {
+				throw new RDFBeanValidationException(
+						RDFContainer.class.getSimpleName()
+						+ " annotation  on " + propertyDescriptor.getName()
+						+ " method is not allowed (\"inverseOf\" property)",
+						beanInfo.getRDFBeanClass());
+			}
+			containerType = containerAnnotation.value();
+		}
+	}
+
+	private void initUri(RDF annotation) throws RDFBeanValidationException {
+		String uriValue = null;
+		if ((annotation.inverseOf() != null) && !annotation.inverseOf().isEmpty()) {
+			uriValue = annotation.inverseOf();
+			inversionOfProperty = true;
+		}
+		else if ((annotation.value() != null) && !annotation.value().isEmpty()){
+			uriValue = annotation.value();
+		}
+		if (uriValue == null) {
+			throw new RDFBeanValidationException(
+					"RDF property or \"inverseOf\" parameter is missing in "
+							+ RDF.class.getName() + " annotation on property "
+							+ propertyDescriptor.getName()
+							+ "'s getter or setter", beanInfo.getRDFBeanClass());
+		}
+		try {
+			uri = SimpleValueFactory.getInstance().createIRI(beanInfo.createUriString(uriValue));
+		}
+		catch (IllegalArgumentException iae) {
+			throw new RDFBeanValidationException(
+					"RDF property URI parameter of " + RDF.class.getName()
+							+ " annotation on "
+							+ propertyDescriptor.getName()
+							+ " getter or setter must be an absolute valid URI: "
+							+ uriValue, beanInfo.getRDFBeanClass(), iae);
 		}
 	}
 
@@ -92,5 +102,4 @@ public class RDFProperty extends AbstractRDFBeanProperty {
 	public RDFContainer.ContainerType getContainerType() {
 		return containerType;
 	}
-
 }

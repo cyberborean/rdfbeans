@@ -60,9 +60,9 @@ public class RDFBeanDelegator implements InvocationHandler {
     
     static {
 		try {
-		    hashCodeMethod = Object.class.getMethod("hashCode", null);
-		    equalsMethod = Object.class.getMethod("equals", new Class[] { Object.class });
-		    toStringMethod = Object.class.getMethod("toString", null);
+		    hashCodeMethod = Object.class.getMethod("hashCode");
+		    equalsMethod = Object.class.getMethod("equals", Object.class);
+		    toStringMethod = Object.class.getMethod("toString");
 	        } 
 		catch (NoSuchMethodException e) {
 		    throw new NoSuchMethodError(e.getMessage());

@@ -64,7 +64,7 @@ import java.lang.annotation.Target;
  * 
  */
 
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RDFSubject {
 

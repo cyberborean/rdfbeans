@@ -29,7 +29,7 @@ import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
  */
 public abstract class AbstractRDFBeanProperty {
 
-	private PropertyDescriptor propertyDescriptor;
+	protected PropertyDescriptor propertyDescriptor;
 
 	public AbstractRDFBeanProperty(PropertyDescriptor propertyDescriptor) {
 		this.propertyDescriptor = propertyDescriptor;

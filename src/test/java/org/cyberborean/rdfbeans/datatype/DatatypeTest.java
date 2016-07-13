@@ -37,16 +37,15 @@ public class DatatypeTest extends RDFBeansTestBase {
     	object.setUriValue(URI.create("http://rdfbeans.sourceforge.net"));
     	int[] array = new int[] {0, 1, 2, 3, 4};
     	object.setArrayValue(array);
-    	object.setListValue(Arrays.asList(new String[] {"a", "b", "c", "d"}));
-    	Set set = new HashSet(3);
+        object.setListValue(Arrays.asList(new Object[] {"a", "b", "c", "d"}));
+        Set<Object> set = new HashSet<>(3);
     	set.add("foo"); set.add("bar"); set.add("baz");
     	object.setSetValue(set);
-    	SortedSet sortedSet = new TreeSet();
+        SortedSet<Object> sortedSet = new TreeSet<>();
     	sortedSet.addAll(set);
-    	object.setSortedSetValue(sortedSet);    	
-    	
-        resource = manager.add(object);        
-    }    
+        object.setSortedSetValue(sortedSet);
+        resource = manager.add(object);
+    }
     
     @Test
     public void test() throws Exception {               

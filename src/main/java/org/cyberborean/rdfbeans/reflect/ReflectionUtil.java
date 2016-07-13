@@ -22,13 +22,13 @@ import java.util.List;
  *
  */
 public class ReflectionUtil {
-	
-	public static <A extends Annotation> A getClassAnnotation(Class cls, Class<A> annotationType) {
-		A ann =  (A) cls.getAnnotation(annotationType);
+
+	public static <A extends Annotation> A getClassAnnotation(Class<?> cls, Class<A> annotationType) {
+		A ann = cls.getAnnotation(annotationType);
 		if (ann == null) {
 			// No class annotation present, inspect interfaces
-			for (Class iface: cls.getInterfaces()) {
-				ann = (A) iface.getAnnotation(annotationType);
+			for (Class<?> iface: cls.getInterfaces()) {
+				ann = iface.getAnnotation(annotationType);
 				if (ann != null) {
 					break;
 				}
@@ -36,42 +36,41 @@ public class ReflectionUtil {
 		}
 		return ann;
 	}
-	
-	public static <A extends Annotation> List<A> getAllClassAnnotations(Class cls, Class<A> annotationType) {
+
+	public static <A extends Annotation> List<A> getAllClassAnnotations(Class<?> cls, Class<A> annotationType) {
 		List<A> results = new ArrayList<A>();
 		findClassAnnotations(cls, annotationType, results);
-		return results;		
+		return results;
 	}
-	
-	private static void findClassAnnotations(Class cls, Class annotationType, List list) {
-		Annotation ann =  cls.getAnnotation(annotationType);
+
+	private static <A extends Annotation> void findClassAnnotations(Class<?> cls, Class<A> annotationType, List<A> list) {
+		A ann =  cls.getAnnotation(annotationType);
 		if (ann != null) {
 			list.add(ann);
-		}		
+		}
 		for (Class iface: cls.getInterfaces()) {
 			findClassAnnotations(iface, annotationType, list);
 		}
 	}
-	
-	public static Annotation getMethodAnnotation(Method method, Class... annotationTypes) {
-		Annotation ann = null;
-		for (Class annType: annotationTypes) {
-			ann = method.getAnnotation(annType);
-			if (ann != null) {
-				return ann;
-			}
-		}
+
+	public static <T extends Annotation> T getMethodAnnotation(Method method, Class<T> annotationType) {
+		T ann = method.getAnnotation(annotationType);
 		if (ann == null) {
 			// Inspect interface methods
 			for (Class iface: method.getDeclaringClass().getInterfaces()) {
 				for (Method otherMethod: iface.getMethods()) {
 					if (isMatchingMethodSignatures(method, otherMethod)) {
-						return getMethodAnnotation(otherMethod, annotationTypes);
+						return getMethodAnnotation(otherMethod, annotationType);
 					}
 				}
 			}
 		}
 		return ann;
+	}
+
+	public static <A extends Annotation> A getPackageAnnotation(Class<?> cls, Class<A> annotationType) {
+		Package p = cls.getPackage();
+		return p == null ? null : p.getAnnotation(annotationType);
 	}
 
 	/**
@@ -90,15 +89,14 @@ public class ReflectionUtil {
 			Arrays.hashCode(m.getParameterTypes());
 	}
 	
-	public static Class[] getAllInterfaces(Class[] interfaces) {
-		List allInterfaces = new ArrayList();
-        for (int i = 0; i < interfaces.length; i++) {
-            allInterfaces.add(interfaces[i]);
-            allInterfaces.addAll(
-                Arrays.asList(
-                    getAllInterfaces(interfaces[i].getInterfaces())));
-        }
-        return (Class[]) allInterfaces.toArray(new Class[allInterfaces.size()]);
+	public static Class<?>[] getAllInterfaces(Class[] interfaces) {
+		List<Class<?>> allInterfaces = new ArrayList<>();
+		for (int i = 0; i < interfaces.length; i++) {
+			allInterfaces.add(interfaces[i]);
+			allInterfaces.addAll(
+				Arrays.asList(
+					getAllInterfaces(interfaces[i].getInterfaces())));
+		}
+		return allInterfaces.toArray(new Class[allInterfaces.size()]);
 	}
-
 }

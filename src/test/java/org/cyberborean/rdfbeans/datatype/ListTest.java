@@ -85,7 +85,7 @@ public class ListTest {
     @Test
     public void encodeHeadTailList() throws RepositoryException, RDFBeanException, URISyntaxException {
         DatatypeTestClass data = new DatatypeTestClass();
-        List<URI> elements = Arrays.asList(new URI("http://example.com/first"), new URI("http://example.com/last"));
+        List<Object> elements = Arrays.asList((Object)new URI("http://example.com/first"), (Object)new URI("http://example.com/last"));
         data.setHeadTailList(elements);
         Resource marshaled = manager.add(data);
         RepositoryConnection checkConn = repo.getConnection();

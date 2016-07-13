@@ -22,6 +22,11 @@ public class RDFBeanInfoTest {
 		@RDF("ex2:test")
 		public abstract Object getTest();
 		public abstract void setTest(Object test);
+
+		@RDF("pkg:field")
+		private Object field;
+		public abstract Object getField();
+		public abstract void setField(Object field);
 	}
 
 	private static RDFBeanInfo info;
@@ -35,11 +40,13 @@ public class RDFBeanInfoTest {
 	public void shouldReadNamespaces() {
 		Map<String, String> namespaces = info.getRDFNamespaces();
 		assertThat(namespaces, notNullValue());
-		assertThat(namespaces.size(), is(2));
+		assertThat(namespaces.size(), is(3));
 		assertThat(namespaces.containsKey("ex"), is(true));
 		assertThat(namespaces.get("ex"), equalTo("http://example.org/"));
 		assertThat(namespaces.containsKey("ex2"), is(true));
 		assertThat(namespaces.get("ex2"), equalTo("http://example.com/withSpaces#"));
+		assertThat(namespaces.containsKey("pkg"), is(true));
+		assertThat(namespaces.get("pkg"), equalTo("http://example.com/package-ns#"));
 	}
 
 	@Test
@@ -52,5 +59,11 @@ public class RDFBeanInfoTest {
 	public void shouldApplyNamespaceToProperty() {
 		IRI expected = SimpleValueFactory.getInstance().createIRI("http://example.com/withSpaces#test");
 		assertThat(info.getProperty(expected), notNullValue());
+	}
+
+	@Test
+	public void annotationMayBeOnField() {
+		IRI field = SimpleValueFactory.getInstance().createIRI("http://example.com/package-ns#field");
+		assertThat(info.getProperty(field), notNullValue());
 	}
 }

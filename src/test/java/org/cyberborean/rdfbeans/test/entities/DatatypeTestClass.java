@@ -40,10 +40,10 @@ public class DatatypeTestClass {
 	java.net.URI uriValue;
 	
 	int[] arrayValue;
-	List listValue;
-	Set setValue;
-	SortedSet sortedSetValue;
-	List headTailList;
+	List<Object> listValue;
+	Set<Object> setValue;
+	SortedSet<Object> sortedSetValue;
+	List<Object> headTailList;
 
 	@RDFSubject
 	public String getID() {
@@ -111,25 +111,25 @@ public class DatatypeTestClass {
 	}
 	
 	@RDF(value="http://cyberborean.org/rdfbeans/2.0/test/datatype/list")
-	public List getListValue() {
+	public List<Object>  getListValue() {
 		return listValue;
 	}
 
 	@RDF(value="http://cyberborean.org/rdfbeans/2.0/test/datatype/set")
 	@RDFContainer(ContainerType.BAG)
-	public Set getSetValue() {
+	public Set<Object>  getSetValue() {
 		return setValue;
 	}
 	
 	@RDF(value="http://cyberborean.org/rdfbeans/2.0/test/datatype/sortedSet")
 	@RDFContainer(ContainerType.ALT)
-	public SortedSet getSortedSetValue() {
+	public SortedSet<Object>  getSortedSetValue() {
 		return sortedSetValue;
 	}
 
 	@RDF(value="http://cyberborean.org/rdfbeans/2.0/test/datatype/headTailList")
 	@RDFContainer(ContainerType.LIST)
-	public List getHeadTailListValue() {
+	public List<Object>  getHeadTailListValue() {
 		return headTailList;
 	}
 
@@ -174,15 +174,15 @@ public class DatatypeTestClass {
 	public void setArrayValue(int n, int value) {
 		this.arrayValue[n] = value;
 	}
-	public void setListValue(List listValue) {
+	public void setListValue(List<Object> listValue) {
 		this.listValue = listValue;
 	}
-	public void setSetValue(Set setValue) {
+	public void setSetValue(Set<Object> setValue) {
 		this.setValue = setValue;
 	}
-	public void setSortedSetValue(SortedSet sortedSetValue) {
+	public void setSortedSetValue(SortedSet<Object> sortedSetValue) {
 		this.sortedSetValue = sortedSetValue;
 	}
-	public void setHeadTailList(List headTailList) { this.headTailList = headTailList; }
+	public void setHeadTailList(List<Object> headTailList) { this.headTailList = headTailList; }
 
 }
