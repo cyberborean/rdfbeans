@@ -696,10 +696,9 @@ public class RDFBeanManager {
 
 	private Class<?> getBindingClass(Resource r) throws RDFBeanException, RepositoryException {		
 		Class<?> cls = null;
-		CloseableIteration<Statement, RepositoryException> ts = null;
-		try {
-			ts = conn.getStatements(r, RDF.TYPE, null, false);
-			if (ts.hasNext()) {
+		try (CloseableIteration<Statement, RepositoryException> ts =
+				conn.getStatements(r, RDF.TYPE, null, false)) {
+			while (cls == null && ts.hasNext()) {
 				Value type = ts.next().getObject();
 				if (type instanceof IRI) {
 					cls = getBindingClassForType((IRI)type);
@@ -707,11 +706,6 @@ public class RDFBeanManager {
 				else {
 					throw new RDFBeanException("Resource " + r.stringValue() + " has invalid RDF type " + type.stringValue() + ": not a URI");
 				}
-			}
-		}
-		finally {
-			if (ts != null) {
-				ts.close();
 			}
 		}
 		return cls;
