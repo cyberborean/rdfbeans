@@ -3,6 +3,7 @@
 
 ex:dataClass
     a dt:DatatypeTestClass;
+    a ex:SecondaryClass;
     dt:list (
         ex:first
         ex:second
