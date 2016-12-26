@@ -60,24 +60,6 @@
 		<maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
 	</properties>
 
-	<distributionManagement>
-		<repository>
-			<id>repo.cyberborean.org</id>
-			<name>cyberborean.org releases</name>
-			<url>ftp://cyberborean.org/releases</url>
-		</repository>
-		<snapshotRepository>
-			<id>repo.cyberborean.org</id>
-			<name>cyberborean.org snapshots</name>
-			<url>ftp://cyberborean.org/snapshots</url>
-		</snapshotRepository>
-		<site>
-			<id>rdfbeans.cyberborean.org</id>
-			<name>rdfbeans.cyberborean.org</name>
-			<url>ftp://cyberborean.org</url>
-		</site>
-	</distributionManagement>
-
 	<!-- Dependencies -->
 
 	<dependencyManagement>
@@ -225,7 +207,24 @@
 					</dependency>
 				</dependencies>
 			</plugin>
+
+<!-- 
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.5</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin> -->
 		</plugins>
+ 
 
 		<extensions>
 			<extension>
