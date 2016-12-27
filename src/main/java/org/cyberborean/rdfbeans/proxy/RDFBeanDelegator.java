@@ -30,6 +30,7 @@ import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
 import org.cyberborean.rdfbeans.reflect.RDFBeanInfo;
 import org.cyberborean.rdfbeans.reflect.RDFProperty;
 import org.eclipse.rdf4j.RDF4JException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -42,7 +43,6 @@ import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
-import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * An InvocationHandler to handle invocations of getter and setter methods
@@ -370,7 +370,8 @@ public class RDFBeanDelegator implements InvocationHandler {
 		}
 		// XXX indexed properties		
 		
-		if (rdfBeanManager.isAutocommit()) {
+		boolean newTxn = !conn.isActive();
+		if (newTxn) {
 			conn.begin();
 		}
 		try {		
@@ -464,12 +465,12 @@ public class RDFBeanDelegator implements InvocationHandler {
 							rdfBeanInfo.getRDFBeanClass().getName());
 				}
 			}
-			if (rdfBeanManager.isAutocommit()) {
+			if (newTxn) {
 				conn.commit();			
 			}
 		}
 		catch (RepositoryException e) {
-			if (rdfBeanManager.isAutocommit()) {
+			if (newTxn) {
 				conn.rollback();			
 			}
 			throw e;

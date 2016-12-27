@@ -1,8 +1,6 @@
 package org.cyberborean.rdfbeans.test;
 
 import org.cyberborean.rdfbeans.RDFBeanManager;
-import org.junit.After;
-import org.junit.Before;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -11,11 +9,13 @@ import org.eclipse.rdf4j.rio.RDFHandlerException;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
+import org.junit.After;
+import org.junit.Before;
 
 public abstract class RDFBeansTestBase {
 		 
 	protected RDFBeanManager manager;
-	private Repository repo;
+	protected Repository repo;
 
 	@Before
 	public void setupManager() throws Exception {

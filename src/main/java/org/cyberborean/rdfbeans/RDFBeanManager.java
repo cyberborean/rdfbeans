@@ -30,6 +30,7 @@ import org.cyberborean.rdfbeans.reflect.RDFBeanInfo;
 import org.cyberborean.rdfbeans.reflect.RDFProperty;
 import org.cyberborean.rdfbeans.reflect.SubjectProperty;
 import org.eclipse.rdf4j.RDF4JException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -44,7 +45,6 @@ import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
-import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * 
@@ -443,22 +443,20 @@ public class RDFBeanManager {
 		return false;
 	}
 	
-	private void deleteInternal(Resource uri) throws RepositoryException {
-		if (isAutocommit()) {
-			conn.begin();
-		}
+	private synchronized void deleteInternal(Resource uri) throws RepositoryException {
+		boolean newTxn = maybeStartTransaction();
 		try {
 			// delete where is a subject
 			conn.remove(uri, null, null);
 			// delete where is an object
 			conn.remove((Resource)null, null, uri);
 			proxies.purge(uri);
-			if (isAutocommit()) {
+			if (newTxn) {
 				conn.commit();
 			}
 		}
 		catch (RepositoryException e) {
-			if (isAutocommit()) {
+			if (newTxn) {
 				conn.rollback();					
 			}
 			throw e;
@@ -496,17 +494,15 @@ public class RDFBeanManager {
 
 	private synchronized Resource addOrUpdate(Object o, boolean update) throws RDFBeanException, RepositoryException {
 		this.resourceCache = new WeakHashMap<Object, Resource>();
-		if (isAutocommit()) {
-			conn.begin();
-		}
+		boolean newTxn = maybeStartTransaction();
 		Resource node;
 		try {
 			node = marshal(o, update);
-			if (isAutocommit()) {
+			if (newTxn) {
 				conn.commit();
 			}
 		} catch (RDFBeanException | RepositoryException e) {
-			if (isAutocommit()) {
+			if (newTxn) {
 				conn.rollback();
 			}
 			throw e;
@@ -1013,18 +1009,16 @@ public class RDFBeanManager {
 	private <T> T createInternal(Resource r, RDFBeanInfo rbi, Class<T> iface) throws RDFBeanException, RepositoryException {
 		boolean newObject = false;
 		if (!isResourceExist(r)) {
-			if (isAutocommit()) {
-				conn.begin();
-			}
+			boolean newTxn = maybeStartTransaction();
 			try {
 				conn.add(r, RDF.TYPE, rbi.getRDFType());
 				//conn.add(rbi.getRDFType(), RDFBeanManager.BINDINGIFACE_PROPERTY, conn.getValueFactory().createLiteral(rbi.getRDFBeanClass().getName()));
-				if (isAutocommit()) {
+				if (newTxn) {
 					conn.commit();
 				}
 			}
 			catch (RepositoryException e) {
-				if (isAutocommit()) {
+				if (newTxn) {
 					conn.rollback();					
 				}
 				throw e;
@@ -1090,48 +1084,12 @@ public class RDFBeanManager {
 
 	// ============================ Common methods =============================
 	
-
-	/**
-	 * Check if autocommit mode is on
-	 * 
-	 * <p>
-	 * If autocommit mode is on, the transactions with the RDF model will be 
-	 * immediately commited on invocation of {@link add(Object)}, {@link update(Object)} and 
-	 * {@link delete(Resource)} methods, as well as of the setter methods of the
-	 * dynamic proxy objects. Otherwise, the transactions must be commited by explicit
-	 * invocation of the <code>commit()</code> method of the Model implementation.
-	 * 
-	 * <p>
-	 * By default, the autocommit mode is on.
-	 * 
-	 * @return True if autocommit mode is on.
-	 * 
-	 * @see setAutocommit(boolean)
-	 */
-	public boolean isAutocommit() {
-		return autocommit;
-	}
-
-	/**
-	 * Set autocommit mode.
-	 * 
-	 * <p>
-	 * If autocommit mode is on, the transactions with the RDF model will be 
-	 * immediately commited on invocation of {@link add(Object)}, {@link update(Object)} and 
-	 * {@link delete(Resource)} methods, as well as of the setter methods of the
-	 * dynamic proxy objects. Otherwise, the transactions must be commited by explicit
-	 * invocation of the <code>commit()</code> method of the Model implementation.
-	 * 
-	 * <p>
-	 * By default, the autocommit mode is on.
-	 *  
-	 * @param autocommit
-	 *            false to set the autocommit mode off or true to on
-	 *            
-	 * @see isAutocommit()
-	 */
-	public void setAutocommit(boolean autocommit) {
-		this.autocommit = autocommit;
+	private boolean maybeStartTransaction() {
+		boolean newTxn = !conn.isActive();
+		if (newTxn) {
+			conn.begin();
+		}
+		return newTxn;
 	}
 
 	/**
