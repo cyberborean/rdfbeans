@@ -1,11 +1,4 @@
-/**
- * RDFBeanInfo.java
- * 
- * RDFBeans Feb 4, 2011 8:28:46 PM alex
- *
- * $Id: RDFBeanInfo.java 36 2012-12-09 05:58:20Z alexeya $
- *  
- */
+
 package org.cyberborean.rdfbeans.reflect;
 
 import java.awt.Image;
@@ -38,12 +31,6 @@ import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
-/**
- * RDFBeanInfo.
- * 
- * @author alex
- * 
- */
 public class RDFBeanInfo {
 	
 	private static WeakHashMap<Class, RDFBeanInfo> rdfBeanInfoCache = new WeakHashMap<Class, RDFBeanInfo>();

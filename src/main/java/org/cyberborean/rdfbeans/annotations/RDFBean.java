@@ -1,19 +1,3 @@
-/*
- * RDFBean.java         
- * -----------------------------------------------------------------------------
- * Created           Jan 14, 2009 12:13:37 PM by alex
- * Latest revision   $Revision: 21 $
- *                   $Date: 2011-04-02 15:15:34 +0600 (Sat, 02 Apr 2011) $
- *                   $Author: alexeya $
- *
- * @VERSION@ 
- *
- * @COPYRIGHT@
- * 
- * @LICENSE@ 
- *
- * -----------------------------------------------------------------------------
- */
 
 package org.cyberborean.rdfbeans.annotations;
 
@@ -23,23 +7,30 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Applied to: Class or interface declaration <br>
+ * Applied to: Class or interface declaration
  * Value: String (required)
  * 
- * &#64;RDFBean annotation indicates that the annotated class (interface) is an
- * RDFBean and declares a qualified name or absolute URI of a RDF type (e.g. a
- * reference to RDF-Schema Class) of RDF resources representing the instances of
- * this class in the model.
+ * `@RDFBean` annotation declares that the annotated class or interface defines a
+ * RDFBean object. 
  * 
- * Example:
+ * The mandatory value element of this annotation specifies a qualified name or an absolute URI of an RDF type of
+ * resources representing instances of this class (interface) in RDF model.
  * 
- * ```
+ * Examples:
+ * 
+ * ```java
  * {@literal @}RDFBean("foaf:Person") 
- *  public class Person { ...
+ *  public class Person { 
+ *      ...
+ *  }
  * ```
  * 
- * @version $Id: RDFBean.java 21 2011-04-02 09:15:34Z alexeya $
- * @author Alex Alishevskikh, alexeya(at)gmail.com
+ * ```java
+ * {@literal @}RDFBean("http://xmlns.com/foaf/0.1/Person") 
+ *  public interface Person { 
+ *      ...
+ *  }
+ * ``` 
  * 
  */
 

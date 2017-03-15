@@ -1,11 +1,4 @@
-/**
- * RDFProperty.java
- * 
- * RDFBeans Feb 4, 2011 10:44:05 PM alex
- *
- * $Id: RDFProperty.java 36 2012-12-09 05:58:20Z alexeya $
- *  
- */
+
 package org.cyberborean.rdfbeans.reflect;
 
 import java.beans.PropertyDescriptor;
@@ -13,17 +6,10 @@ import java.beans.PropertyDescriptor;
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFContainer;
 import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
-import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
-/**
- * RDFProperty.
- * 
- * @author alex
- * 
- */
 public class RDFProperty extends AbstractRDFBeanProperty {
 
 	private boolean inversionOfProperty;

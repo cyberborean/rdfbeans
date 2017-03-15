@@ -1,19 +1,3 @@
-/*
- * RDF.java         
- * -----------------------------------------------------------------------------
- * Created           Jan 14, 2009 12:04:15 PM by alex
- * Latest revision   $Revision: 30 $
- *                   $Date: 2011-09-28 12:46:32 +0600 (Wed, 28 Sep 2011) $
- *                   $Author: alexeya $
- *
- * @VERSION@ 
- *
- * @COPYRIGHT@
- * 
- * @LICENSE@ 
- *
- * -----------------------------------------------------------------------------
- */
 
 package org.cyberborean.rdfbeans.annotations;
 
@@ -26,21 +10,20 @@ import java.lang.annotation.Target;
  * Applied to: Method declaration<br>
  * Value: String (required)
  * 
- * &#64;RDF annotation declares a RDFBean data property. The annotations must be
- * applied to getter methods of RDFBean class or interface.
+ * `@RDF` annotation declares a RDFBean data property. The annotations must be
+ * applied to getter methods of an RDFBean class or interface.
  * 
- * The mandatory String value defines a qualified name or absolute URI of
+ * The mandatory value element defines a qualified name or absolute URI of
  * an RDF property (predicate) mapped to this property.
  * 
  * Example:
  *
- * ```
+ * ```java
  * {@literal @}RDF("foaf:name")
- * public String getName() { ...
+ * public String getName() { 
+ *     return name;
+ * }
  * ```
- * 
- * @version $Id: RDF.java 30 2011-09-28 06:46:32Z alexeya $
- * @author Alex Alishevskikh, alexeya(at)gmail.com
  * 
  */
 

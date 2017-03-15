@@ -10,10 +10,6 @@ import org.cyberborean.rdfbeans.reflect.RDFBeanInfo;
 import org.cyberborean.rdfbeans.util.WeakCacheMap;
 import org.eclipse.rdf4j.model.Resource;
 
-/**
- * @author alex
- *
- */
 public class ProxyInstancesPool {
 
 	private final WeakCacheMap<String, Object> instances = new WeakCacheMap<String, Object>();

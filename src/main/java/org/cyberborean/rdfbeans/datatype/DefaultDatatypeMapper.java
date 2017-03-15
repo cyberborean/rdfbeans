@@ -1,11 +1,4 @@
-/**
- * DefaultDatatypeMapper.java
- * 
- * RDFBeans Feb 3, 2011 5:27:31 PM alex
- *
- * $Id: DefaultDatatypeMapper.java 44 2014-07-01 13:33:00Z alexeya $
- *  
- */
+
 package org.cyberborean.rdfbeans.datatype;
 
 import java.math.BigDecimal;
@@ -34,7 +27,6 @@ import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
  * type, serialized into ISO8601 date/time format.</li>
  * </ul>
  * 
- * @author alex
  * 
  */
 public class DefaultDatatypeMapper implements DatatypeMapper {

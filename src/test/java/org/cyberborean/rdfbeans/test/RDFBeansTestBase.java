@@ -20,7 +20,7 @@ public abstract class RDFBeansTestBase {
 	@Before
 	public void setupManager() throws Exception {
 		repo = new SailRepository(new MemoryStore());
-        repo.initialize();        
+        repo.initialize();   
         manager = new RDFBeanManager(repo.getConnection());
 	}
 	

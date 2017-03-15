@@ -1,11 +1,4 @@
-/**
- * SubjectProperty.java
- * 
- * RDFBeans Feb 4, 2011 9:24:44 PM alex
- *
- * $Id: SubjectProperty.java 21 2011-04-02 09:15:34Z alexeya $
- *  
- */
+
 package org.cyberborean.rdfbeans.reflect;
 
 import java.beans.PropertyDescriptor;
@@ -16,12 +9,6 @@ import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
-/**
- * SubjectProperty.
- * 
- * @author alex
- * 
- */
 public class SubjectProperty extends AbstractRDFBeanProperty {
 
 	private String prefix;

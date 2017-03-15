@@ -1,20 +1,3 @@
-/*
- * DateUtils.java         
- * -----------------------------------------------------------------------------
- * Created           Jan 15, 2009 4:31:20 PM by alex
- * Latest revision   $Revision: 44 $
- *                   $Date: 2014-07-01 18:33:00 +0500 (Вт, 01 июл 2014) $
- *                   $Author: alexeya $
- *
- * @VERSION@ 
- *
- * @COPYRIGHT@
- * 
- * @LICENSE@ 
- *
- * -----------------------------------------------------------------------------
- */
-
 
 package org.cyberborean.rdfbeans.datatype;
 
@@ -25,8 +8,6 @@ import java.util.Date;
 
 /**
  * Utilities for parsing dates.
- *
- * @author Alex Alishevskikh, alexeya(at)gmail.com
  * 
  */
 public class DateUtils {

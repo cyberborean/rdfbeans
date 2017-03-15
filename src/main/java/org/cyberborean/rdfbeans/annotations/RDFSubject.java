@@ -24,28 +24,37 @@ import java.lang.annotation.Target;
 
 /**
  * Applied to: Method declaration <br>
- * Parameter: prefix (String, optional)
+ * Value: `prefix` (String, optional)
  * 
  * &#64;RDFSubject annotation indicates that the annotated getter method returns
- * a String value of RDFBean identifier.
+ * a value of the RDFBean object identifier property. 
  * 
- * The prefix parameter defines the optional prefix part of RDFBean identifier
+ * An RDFBean class or interface should declare only one identifier property.
+ * If the property is declared, all identifier properties inherited from other classes (interfaces) are ignored. 
+ * Otherwise, if no identifier property is declared on a given class or interface, it can be inherited from the nearest ancestors.
+ * 
+ * If no identifier property is found in the classes/interfaces hierarchy, the RDFBean object cannot be represented with 
+ * an RDF resource in the model. However, it is still possible to represent it as a blank node (anonymous RDFBean).
+ * 
+ * The `prefix` parameter defines the optional prefix part of RDFBean identifier
  * and must contain either a namespace URI or a reference to namespace defined
  * by {@link RDFNamespaces} annotation.
  * 
- * If prefix parameter is set, it is expected that the method returns a local
+ * If the prefix is specified, it is expected that the method returns a local
  * part of RDFBean identifier. Otherwise, the method must return a value of
  * RDFBean identifier as a fully qualified name.
  * 
  * Examples:
  * 
- * ```
+ * ```java
  * {@literal @}RDFSubject(prefix="http://rdfbeans.example.com/persons/") 
  *  public String  getPersonId() {
  * ...
  * ```
  * 
- * ```
+ * ```java
+ * {@literal @}RDFNamespaces("persons=http://rdfbeans.example.com/persons/");
+ * ...
  * {@literal @}RDFSubject(prefix="persons:") 
  *  public String getPersonId() { 
  *  ...
@@ -56,11 +65,6 @@ import java.lang.annotation.Target;
  *  public String getPersonId() { 
  *  ... // A fully qualified name must be returned
  * ```
- * 
- * 
- * 
- * @version $Id: RDFSubject.java 21 2011-04-02 09:15:34Z alexeya $
- * @author Alex Alishevskikh, alexeya(at)gmail.com
  * 
  */
 

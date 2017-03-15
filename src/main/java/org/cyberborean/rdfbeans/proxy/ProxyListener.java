@@ -1,6 +1,4 @@
-/**
- * 
- */
+
 package org.cyberborean.rdfbeans.proxy;
 
 import org.eclipse.rdf4j.model.IRI;
@@ -10,7 +8,6 @@ import org.eclipse.rdf4j.model.Resource;
  * An RDFBeanManager listener for dynamic proxies creation and property changing
  * events.
  * 
- * @author alex
  */
 public interface ProxyListener {
 

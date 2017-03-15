@@ -1,11 +1,4 @@
-/**
- * AbstractRDFBeanProperty.java
- * 
- * RDFBeans Feb 4, 2011 9:04:39 PM alex
- *
- * $Id: AbstractRDFBeanProperty.java 31 2011-09-30 05:18:26Z alexeya $
- *  
- */
+
 package org.cyberborean.rdfbeans.reflect;
 
 import java.beans.IndexedPropertyDescriptor;
@@ -21,12 +14,6 @@ import java.util.List;
 
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 
-/**
- * AbstractRDFBeanProperty.
- * 
- * @author alex
- * 
- */
 public abstract class AbstractRDFBeanProperty {
 
 	protected PropertyDescriptor propertyDescriptor;

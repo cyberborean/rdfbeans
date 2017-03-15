@@ -1,11 +1,4 @@
-/**
- * RDFBeanDelegator.java
- * 
- * RDFBeans Feb 7, 2011 4:36:03 PM alex
- *
- * $Id: RDFBeanDelegator.java 39 2013-12-25 13:17:06Z alexeya $
- *  
- */
+
 package org.cyberborean.rdfbeans.proxy;
 
 import java.beans.IndexedPropertyDescriptor;
@@ -47,8 +40,6 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 /**
  * An InvocationHandler to handle invocations of getter and setter methods
  * on dynamic RDFBean proxies. 
- * 
- * @author alex
  * 
  */
 public class RDFBeanDelegator implements InvocationHandler {

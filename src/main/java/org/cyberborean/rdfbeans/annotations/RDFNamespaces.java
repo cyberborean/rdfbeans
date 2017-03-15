@@ -25,9 +25,7 @@ import java.lang.annotation.Target;
  *    "foaf = http://xmlns.com/foaf/0.1/",
  *    "persons = http://rdfbeans.viceversatech.com/test-ontology/persons/"
  *  });
- * ```
- *
- * @author alex
+ * ``` 
  *
  */
 @Target({ElementType.TYPE, ElementType.PACKAGE})

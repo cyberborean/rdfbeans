@@ -1,11 +1,4 @@
-/**
- * ReflectionUtil.java
- * 
- * RDFBeans Feb 15, 2011 3:22:03 PM alex
- *
- * $Id: ReflectionUtil.java 21 2011-04-02 09:15:34Z alexeya $
- *  
- */
+
 package org.cyberborean.rdfbeans.reflect;
 
 import java.lang.annotation.Annotation;
@@ -14,13 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
-/**
- * ReflectionUtil.
- *
- * @author alex
- *
- */
 public class ReflectionUtil {
 
 	public static <A extends Annotation> A getClassAnnotation(Class<?> cls, Class<A> annotationType) {

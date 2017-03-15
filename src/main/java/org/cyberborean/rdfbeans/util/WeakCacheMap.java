@@ -1,16 +1,10 @@
-/**
- * 
- */
+
 package org.cyberborean.rdfbeans.util;
 
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 
-/**
- * @author alex
- * 
- */
 public class WeakCacheMap<K, V> extends CacheMap<K, V> {
 
 	@SuppressWarnings("unchecked")

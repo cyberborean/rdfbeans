@@ -18,6 +18,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.WeakHashMap;
 
+import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
 import org.cyberborean.rdfbeans.annotations.RDFSubject;
 import org.cyberborean.rdfbeans.datatype.DatatypeMapper;
@@ -47,60 +48,68 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 
 /**
+ * Provides basic CRUD and dynamic proxy management functions for persisting RDFBean data objects using a RDF model stored in RDF4J repository.
  * 
- * RDFBeans databinding functions are accessible as methods of a single
- * RDFBeanManager class. An RDFBeanManager instance is created with a RDF2Go
- * Model which provides an abstraction layer to access an underlying physical
- * RDF storage. Currently, RDF2Go project provides implementations of Model
- * interface (adapters) for Sesame 2.x and Jena frameworks.
+ * RDFBeanManager is instantiated with opened RDF4J 
+ * [RepositoryConnection](http://docs.rdf4j.org/javadoc/latest?org/eclipse/rdf4j/repository/RepositoryConnection.html) to an existing 
+ * [Repository](http://docs.rdf4j.org/javadoc/latest?org/eclipse/rdf4j/repository/Repository.html) object. The client code is responsible
+ * for opening and closing the repository connection, as well as initializing and shutting down the repository.
  * 
- * A Model instance is passed as an argument to the RDFBeanManager constructor.
- * The Model implementations may require the model to be opened (initialized)
- * before and closed after use. The following example illustrates how to setup
- * RDFBeans databinding with a model adapter determined automatically via RDF2Go
- * ModelFactory mechanism:
+ * Example of usage:
  * 
- * <pre>
- * import org.cyberborean.rdfbeans.RDFBeanManager; 
- * import org.ontoware.rdf2go.ModelFactory; 
- * import org.ontoware.rdf2go.RDF2Go; 
- * import org.ontoware.rdf2go.model.Model; 
- * ...
+ * ```java
+ * Repository repo;
+ * try {
+ *     File dataDir = new File("C:\\temp\\myRepository\\");      
+ *     repo = new SailRepository(new NativeStore(dataDir));
+ *     repo.initialize();
+ *     try (RepositoryConnection con = repo.getConnection()) {
+ *         RDFBeanManager rdfBeanManager = new RDFBeanManager(con);          
+ *         //... do something ...
+ *     }
+ * finally {
+ *     repo.shutDown();   
+ * }
+ * ```
  * 
- * ModelFactory modelFactory = RDF2Go.getModelFactory(); 
- * Model model = modelFactory.createModel(); 
- * model.open(); 
- * RDFBeanManager manager = new RDFBeanManager(model); 
- * ... 
- * model.close();
- * </pre>
+ * ### Multi-threading
  * 
- * An example with hardcoded Sesame 2.x NativeStore model implementation:
+ * This class, as well as RDF4J RepositoryConnection is **not thread-safe**. It is recommended that each thread obtain it's own 
+ * RepositoryConnection from a shared Repository object and create a separate RDFBeanManager instance on it.
  * 
- * <pre>
- * import org.cyberborean.rdfbeans.RDFBeanManager; 
- * import org.ontoware.rdf2go.model.Model; 
- * import org.openrdf.rdf2go.RepositoryModel;
- * import org.openrdf.repository.Repository; 
- * import org.openrdf.repository.sail.SailRepository; 
- * import org.openrdf.sail.nativerdf.NativeStore; 
- * ...
+ * ### Transactions
  * 
- * Repository repository = new SailRepository(new NativeStore(new File("~/.sesame/test"))); 
- * repository.initialize(); 
- * Model model = new RepositoryModel(repository); 
- * model.open(); 
- * RDFBeanManager manager = new RDFBeanManager(model); 
- * ... 
- * model.close();
- * </pre>
+ * By default, RDFBeanManager methods add or delete individual RDF statements in a transaction-safe manner. 
+ * A method starts new transaction on RepositoryConnection before any update and commit it automatically after updates are completed. 
+ * If the method throws an exception, the entire transaction is rolled back that guarantees that all updates the method made to this point 
+ * will not take effect.
  * 
- * For detailed information on RDF2Go configuration for specific triple store
- * adapters, please refer to RDF2Go documentation.
+ * The behaviour is different if the method is invoked when RepositoryConnection already has an active transaction. 
+ * In this case, the method does not start new transaction, but re-uses existing one by adding new operations to it. The updates will not take
+ * effect until the transaction is committed. If an exception is thrown by the method, the transaction status is not changed (the client code is free
+ * to roll it back on it's own).   
  * 
- * 
- * @author alex
- * @version $Id:$
+ * With this explicit transaction management, one can group multiple RDFBeanManager operations 
+ * and treat them as a single update, as shown in the below example:
+ *  
+ * ```java
+ * RepositoryConnection con = rdfBeanManager.getRepositoryConnection();
+ * // start a transaction
+ * con.begin();
+ * try {
+ *     // Add few RDFBean objects
+ *     rdfBeanManager.add(object1);
+ *     rdfBeanManager.add(object2);
+ *     rdfBeanManager.add(object3);
+ *     // Commit the above adds at once
+ *     con.commit();
+ * }
+ * catch (Throwable t) {
+ *     // Something went wrong, we roll the transaction back
+ *     con.rollback();
+ *     throw t;
+ * }
+ * ``` 
  * 
  */
 public class RDFBeanManager {
@@ -112,7 +121,6 @@ public class RDFBeanManager {
 			"http://viceversatech.com/rdfbeans/2.0/bindingIface");
 
 	private RepositoryConnection conn;
-	private boolean autocommit = true;
 	private ClassLoader classLoader;
 	private DatatypeMapper datatypeMapper = new DefaultDatatypeMapper();
 
@@ -123,7 +131,7 @@ public class RDFBeanManager {
 	private List<ProxyListener> proxyListeners = new Vector<ProxyListener>();
 
 	/**
-	 * Creates new RDFBeanManager instance upon the given RDF2Go model.
+	 * Creates new RDFBeanManager instance upon the given RDF4J RepositoryConnection.
 	 * 
 	 * @param conn
 	 */
@@ -138,82 +146,88 @@ public class RDFBeanManager {
 		return conn;
 	}
 
-	// ====================== RDFBean classes functionality ====================
+	// ====================== RDFBeans CRUD functionality ====================
 
 	/**
-	 * Marshall the state of an RDFBean object to an RDF resource (a set of
-	 * triple statements) in the underlying RDF model.
+	 * Marshalls the state of a Java object to an RDF resource (a set of
+	 * triple statements in the underlying RDF model).
 	 * 
-	 * <p>
-	 * If the RDFBean object has not-null property, annotated with
-	 * {@link RDFSubject}, the method returns absolute URI of RDF resource.
-	 * Otherwise, RDF BlankNode is returned.
+	 * The class of the object must conform to the RDFBean specification.
 	 * 
-	 * <p>
+	 * If the object has a not-null property, annotated with {@link RDFSubject},
+	 * the method returns IRI of newly created RDF resource. Otherwise (the
+	 * RDFBean is anonymous), a BNode object is returned.
+	 * 
 	 * If an RDF representation of the given unanonymous object already exists
-	 * in the model, the method immediately returns the RDF resource without
-	 * changing the model.
+	 * in the model, the method immediately returns IRI without any model
+	 * modifications.
 	 * 
-	 * <p>
-	 * If autocommit mode is on (see {@link setAutocommit(boolean)}), the
-	 * statements are commited into the RDF model in a single transaction.
-	 * Otherwise, the transaction is delayed until the <code>commit()</code>
-	 * method of the underlying Model implementation is invoked.
+	 * Upon marshalling a first instance of every Java class, the method adds
+	 * special statement to the model containing information about binding of 
+	 * specific RDF type to that class. This information is needed to
+	 * determine which class to use for instatiation of the unmarshalled objects later. 
+	 * @see get(Resource) 
+	 *
+	 * If there is an active transaction started on RepositoryConnection, all
+	 * individual updates performed by this method are added to that
+	 * transaction. This means that the updates are not effective until the
+	 * transaction is committed. Otherwise, this method will start new
+	 * transaction under the hood to commit individual triple updates at once.
 	 * 
 	 * @param o
 	 *            RDFBean to add
-	 * @return Resource URI or BlankNode for anonymous RDFBean
+	 * @return Resource IRI (or BNode for anonymous RDFBean)
 	 * @throws RDFBeanException
-	 *             If the object is not a valid RDFBean
-	 * @throws RepositoryException 
+	 *             If class of the object is not a valid RDFBean class
+	 * @throws RepositoryException
 	 * 
 	 * @see update(Object)
-	 * @see setAutocommit(boolean)
 	 */
-	public synchronized Resource add(Object o) throws RDFBeanException, RepositoryException {
+	public Resource add(Object o) throws RDFBeanException, RepositoryException {
 		return addOrUpdate(o, false);
 	}
 
 	/**
-	 * Marshall the state of an RDFBean object to update an existing RDF
-	 * resource in the underlying RDF model.
+	 * Marshalls the state of a Java RDFBean object to an RDF resource (a set of
+	 * triple statements in the underlying RDF model). If existing RDF representation of this
+	 * object is found in the model, it will be overwritten.
 	 * 
-	 * <p>
-	 * If no resource for the given object exists, or the object is anonymous
-	 * RDFBean represented with a BlankNode, the method works like
-	 * {@link #add(Object) add()}.
+	 * The class of the object must conform the RDFBean specification.
 	 * 
-	 * <p>
-	 * If autocommit mode is on (see {@link setAutocommit(boolean)}), the
-	 * statements are commited into the RDF model in a single transaction.
-	 * Otherwise, the transaction is delayed until the <code>commit()</code>
-	 * method of the underlying Model implementation is invoked.
+	 * If no RDF representation for the given object is found, or if the object is an anonymous
+	 * RDFBean, the method works exactly like {@link #add(Object) add()}.
+	 *
+	 * If there is an active transaction started on RepositoryConnection, all individual 
+	 * updates performed by this method are added to that transaction. That means that the updates
+	 * are not effective until the transaction is committed. Otherwise, this method will start new
+	 * transaction under the hood to commit individual triple updates at once.     
 	 * 
 	 * @param o
 	 *            RDFBean to update
-	 * @return Resource URI or BlankNode for anonymous RDFBean
+	 * @return Resource IRI (or BNode for anonymous RDFBean)
 	 * @throws RDFBeanException
-	 *             If the object is not a valid RDFBean
+	 *             If class of the object is not a valid RDFBean class
 	 * @throws RepositoryException 
 	 * 
 	 * @see add(Object)
-	 * @see setAutocommit(boolean)
 	 */
 	public synchronized Resource update(Object o) throws RDFBeanException, RepositoryException {
 		return addOrUpdate(o, true);
 	}
 
 	/**
-	 * Unmarshall an RDF resource to an instance of the specified RDFBean class.
+	 * Unmarshalls an RDF resource by creating an object of the specified Java class.
+	 * 
+	 * The class must conform to the RDFBean specification.
 	 * 
 	 * @param r
-	 *            Resource URI (or BlankNode for anonymous RDFBeans).
+	 *            Resource IRI (or BNode for anonymous RDFBean).
 	 * @param rdfBeanClass
 	 *            Java class of RDFBean
-	 * @return Unmarshalled RDFBean object, or null if the resource does not
-	 *         exists
+	 * @return Unmarshalled Java object, or null if the resource does not
+	 *         exist
 	 * @throws RDFBeanException
-	 *             If the class is not a valid RDFBean or an instance of this
+	 *             If the class is not a valid RDFBean class or an instance of this
 	 *             class cannot be created
 	 * @throws RDF4JException
 	 * @see get(Resource)
@@ -229,21 +243,19 @@ public class RDFBeanManager {
 	}
 
 	/**
+	 * Unmarshalls an RDF resource by creating an object of auto-detected Java class.
 	 * 
-	 * Unmarshall an RDF resource to an RDFBean instance.
-	 * 
-	 * <p>
-	 * The method tries to autodetect an RDFBean Java class using information
-	 * added to the model at marshalling. If a binding class information is not
+	 * The method tries to determine a Java class using binding class information
+	 * added to the model at marshalling. If the binding class information is not
 	 * found, RDFBeanException is thrown.
 	 * 
 	 * @param r
-	 *            Resource URI or BlankNode for anonymous RDFBeans.
-	 * @return Unmarshalled RDFBean object, or null if the resource does not
-	 *         exists in the model
+	 *            Resource IRI (or BNode for anonymous RDFBean).
+	 * @return Unmarshalled Java object, or null if the resource does not
+	 *         exist 
 	 * @throws RDFBeanException
-	 *             If the binding class cannot be detected, is not a valid
-	 *             RDFBean or an instance of this class cannot be created
+	 *             If the binding class cannot be detected, or it is not a valid
+	 *             RDFBean class or an instance of this class cannot be created
 	 * @throws RDF4JException
 	 * @see get(Resource,Class)
 	 * @see get(String,Class)
@@ -262,23 +274,24 @@ public class RDFBeanManager {
 	}
 
 	/**
-	 * Unmarshall an RDF resource matching specified RDFBean identifier to an
-	 * instance of the specified RDFBean class.
+	 * Unmarshalls an RDF resource matching the specified RDFBean identifier 
+	 * by creating an object of the specified Java class.
 	 * 
-	 * <p>
+	 * The class must conform to the RDFBean specification.
+	 * 
 	 * If a namespace prefix is defined in {@link RDFSubject} declaration for
 	 * this RDFBean class, the provided identifier value is interpreted as a
-	 * local part of fully qualified RDFBean name (RDF resource URI). Otherwise,
-	 * the fully qualified name must be provided.
+	 * local part of fully qualified RDFBean name (RDF resource IRI). Otherwise,
+	 * the fully qualified name is expected.
 	 * 
 	 * @param stringId
 	 *            RDFBean ID value
 	 * @param rdfBeanClass
 	 *            Java class of RDFBean
-	 * @return The unmarshalled Java object, or null no resource matching the
-	 *         given ID is found exists
+	 * @return The unmarshalled Java object, or null if the resource matching the
+	 *         given ID does not exist
 	 * @throws RDFBeanException
-	 *             If the class is not a valid RDFBean or an instance of this
+	 *             If the class is not a valid RDFBean class or an instance of this
 	 *             class cannot be created
 	 * @throws RDF4JException
 	 * @see get(Resource)
@@ -295,21 +308,21 @@ public class RDFBeanManager {
 	}
 
 	/**
-	 * Obtain an iterator over all instances of specified RDFBean class stored
-	 * in the RDF model
+	 * Returns an iterator over all objects of the specified Java class stored
+	 * in the RDF model.
 	 * 
-	 * <p>
-	 * The returned Iterator performs lazy unmarshalling of RDFBean objects (on
-	 * every <code>next()</code> call) without any specific order. When
-	 * iterating is done, the caller must invoke the <code>close()</code> method
-	 * of CloseableIterator to release the resources of the underlying RDF model
-	 * implementation.
+	 * The class must conform to the RDFBean specification.
+	 * 
+	 * The returned Iterator performs "lazy" unmarshalling of objects (on
+	 * every `next()` call) with no specific order. When
+	 * iterating is done, the caller must invoke the `close()` method
+	 * to release the resources of underlying RDF model.
 	 * 
 	 * @param rdfBeanClass
-	 *            Java class of RDFBeans
-	 * @return Iterator over RDFBean instances
+	 *            Java class of objects to iterate
+	 * @return Iterator over instances of the specified Java class
 	 * @throws RDFBeanException
-	 *             If the class is not a valid RDFBean
+	 *             If the class is not a valid RDFBean class
 	 * @throws RepositoryException 
 	 */
 	public <T> CloseableIteration<T, Exception> getAll(final Class<T> rdfBeanClass)
@@ -367,18 +380,33 @@ public class RDFBeanManager {
 	}
 
 	/**
-	 * Check if a RDF resource exists in the underlying model.
+	 * Checks whether an RDF resource exists in the underlying model.
 	 * 
 	 * @param r
-	 *            Resource URI or BlankNode
+	 *            Resource IRI or BNode
 	 * @return true, if the model contains the statements with the given
-	 *         subject.
+	 *         resource subject.
 	 * @throws RepositoryException 
 	 */
 	public boolean isResourceExist(Resource r) throws RepositoryException {
 		return hasStatement(r, null, null);
 	}
 	
+	/**
+	 * Checks whether an RDF resource exists in the underlying model and
+	 * represents an object of the specified Java class.
+	 * 
+	 * The class must conform to the RDFBean specification.
+	 * 
+	 * @param r
+	 *            Resource IRI or BNode
+	 * @return true, if the model contains the statements with the given
+	 *         resource subject and RDF type of that resource matches one
+	 *         specified in {@link RDFBean} annotation of the given class. 
+	 * @throws RDFBeanValidationException
+	 * 			If the class is not a valid RDFBean class
+	 * @throws RepositoryException 
+	 */
 	public boolean isResourceExist(Resource r, Class rdfBeanClass) throws RDFBeanValidationException, RepositoryException {
 		RDFBeanInfo rbi = RDFBeanInfo.get(rdfBeanClass);
 		return hasStatement(r, RDF.TYPE, rbi.getRDFType());
@@ -390,22 +418,23 @@ public class RDFBeanManager {
 	}
 
 	/**
-	 * Resolve the RDFBean identifier to an RDF resource URI.
+	 * Returns an RDF resource representing an object that matches the specified RDFBean identifier and Java class.
 	 * 
-	 * <p>
+	 * The class must conform to the RDFBean specification.
+	 * 
 	 * If a namespace prefix is defined in {@link RDFSubject} declaration for
 	 * this RDFBean class, the provided identifier value is interpreted as a
-	 * local part of fully qualified RDFBean name (RDF resource URI). Otherwise,
-	 * the fully qualified name must be provided.
+	 * local part of fully qualified RDFBean name (RDF resource IRI). Otherwise,
+	 * the fully qualified name is expected.
 	 * 
 	 * @param stringId
 	 *            RDFBean ID value
 	 * @param rdfBeanClass
 	 *            Java class of RDFBean
-	 * @return Resource URI, or null if no resource matching the given RDFBean
+	 * @return Resource IRI, or null if no resource matching the given RDFBean
 	 *         ID found.
 	 * @throws RDFBeanException
-	 *             If the class is not a valid RDFBean
+	 *             If the class is not a valid RDFBean class
 	 * @throws RepositoryException 
 	 */
 	public Resource getResource(String stringId, Class rdfBeanClass)
@@ -422,18 +451,20 @@ public class RDFBeanManager {
 	}
 
 	/**
-	 * Delete the RDF resource from underlying model.
+	 * Deletes the RDF resource from the underlying model.
 	 * 
-	 * <p>
-	 * If autocommit mode is on (see {@link setAutocommit(boolean)}), the
-	 * statements are removed from the RDF model as a single transaction.
-	 * Otherwise, the transaction is delayed until the <code>commit()</code>
-	 * method of the underlying Model implementation is invoked.
+	 * It results in deletion of all statements where the given resource is either a subject or an object.
 	 * 
-	 * @param uri Resource URI
+	 * If there is an active transaction started on RepositoryConnection, all
+	 * individual updates performed by this method are added to that
+	 * transaction. That means that the updates are not effective until the
+	 * transaction is committed. Otherwise, this method will start new
+	 * transaction under the hood to commit individual triple updates at once.
+	 * 
+	 * @param uri Resource IRI
+	 * @return true if the resource existed in the model before deletion, false otherwise
 	 * @throws RepositoryException 
 	 * @see delete(String,Class)
-	 * @see setAutocommit(boolean)
 	 */
 	public boolean delete(Resource uri) throws RepositoryException {
 		if (isResourceExist(uri)) {
@@ -464,25 +495,33 @@ public class RDFBeanManager {
 	}
 
 	/**
-	 * Delete an RDF resource matching the specified RDFBean identifier from
-	 * underlying model.
+	 * Deletes an RDF resource representing an object that matches the specified RDFBean identifier and Java class
+	 * from the underlying model.
 	 * 
-	 * <p>
-	 * If autocommit mode is on (see {@link setAutocommit(boolean)}), the
-	 * statements are removed from the RDF model as a single transaction.
-	 * Otherwise, the transaction is delayed until the <code>commit()</code>
-	 * method of the underlying Model implementation is invoked.
+	 * The class must conform to the RDFBean specification.
+	 * 
+	 * If the RDF resource is found, it results in deletion of all statements where it is either a subject or an object.
+	 * 
+	 * If a namespace prefix is defined in {@link RDFSubject} declaration for
+	 * this RDFBean class, the provided identifier value is interpreted as a
+	 * local part of fully qualified RDFBean name (RDF resource IRI). Otherwise,
+	 * the fully qualified name is expected.
+	 * 
+	 * If there is an active transaction started on RepositoryConnection, all
+	 * individual updates performed by this method are added to that
+	 * transaction. That means that the updates are not effective until the
+	 * transaction is committed. Otherwise, this method will start new
+	 * transaction under the hood to commit individual triple updates at once.
 	 * 
 	 * @param stringId
 	 *            RDFBean ID value
 	 * @param rdfBeanClass
 	 *            Java class of RDFBean
 	 * @throws RDFBeanException
-	 *             If the class is not a valid RDFBean
+	 *             If the class is not a valid RDFBean class
 	 * @throws RepositoryException 
 	 * 
 	 * @see delete(Resource)
-	 * @see setAutocommit(boolean)
 	 */
 	public void delete(String stringId, Class rdfBeanClass)
 			throws RDFBeanException, RepositoryException {
@@ -953,50 +992,51 @@ public class RDFBeanManager {
 	// ================== RDFBean dynamic proxy functionality ==================
 
 	/**
-	 * Create new dynamic proxy instance that implements the specified RDFBean
-	 * interface and backed by the specified RDF resource in the underlying
+	 * Creates new dynamic proxy object implementing the specified Java
+	 * interface. The specified RDF resource will represent the object in the underlying
 	 * RDF model.
 	 * 
+	 * The interface must conform to the RDFBean specification.
+	 * 
 	 * @param r
-	 *            Resource URI
+	 *            Resource IRI
 	 * @param iface
-	 *            RDFBean interface
-	 * @return New RDFBean dynamic proxy object with the specified interface
+	 *            RDFBean-compliant Java interface
+	 * @return New dynamic proxy object with the specified interface
 	 * @throws RDFBeanException
-	 *             If iface is not valid RDFBean interface
+	 *             If iface is not a valid RDFBean interface
 	 * @throws RepositoryException 
 	 *             
 	 * @see create(String,Class)
 	 * @param <T>
 	 */
-
 	public <T> T create(Resource r, Class<T> iface) throws RDFBeanException, RepositoryException {
 		return createInternal(r, RDFBeanInfo.get(iface), iface) ;
 	}
 
 	/**
-	 * Create new dynamic proxy instance that implements the specified RDFBean
-	 * interface and backed by an RDF resource matching to the given RDFBean ID.
+	 * Creates new dynamic proxy object implementing the specified Java
+	 * interface. An RDF resource matching the specified RDFBean identifier will represent the object in the underlying
+	 * RDF model.
 	 * 
-	 * <p>
+	 * The interface must conform to the RDFBean specification.
+	 * 
 	 * If a namespace prefix is defined in {@link RDFSubject} declaration for
 	 * this RDFBean interface, the provided identifier value is interpreted as a
-	 * local part of fully qualified RDFBean name (RDF resource URI). Otherwise,
-	 * the fully qualified name must be provided.
+	 * local part of fully qualified RDFBean name (RDF resource IRI). Otherwise,
+	 * the fully qualified name is expected.
 	 * 
 	 * @param id
 	 *            RDFBean ID value
 	 * @param iface
-	 *            RDFBean interface
-	 * @return New RDFBean dynamic proxy object with the specified interface
+	 *            RDFBean-compliant Java interface
+	 * @return New dynamic proxy object with the specified interface
 	 * @throws RDFBeanException
-	 *             if iface is not valid RDFBean interface or there is an error
-	 *             resolving RDFBean identifier
+	 *             if iface is not valid RDFBean interface or the RDFBean identifier cannot be resolved to a resource
 	 * @throws RepositoryException 
 	 *             
 	 * @see create(Resource,Class)
 	 */
-
 	public <T> T create(String id, Class<T> iface) throws RDFBeanException, RepositoryException {
 		RDFBeanInfo rbi = RDFBeanInfo.get(iface);
 		IRI uri = resolveUri(id, rbi);
@@ -1033,12 +1073,16 @@ public class RDFBeanManager {
 	}
 	
 	/**
-	 * Returns a collection of dynamic proxy instances for existing RDF resources
+	 * Constructs all dynamic proxy objects implementing the specified Java
+	 * interface from their representations in the underlying RDF model. 
+	 * 
+	 * The interface must conform to the RDFBean specification.
 	 * 
 	 * @param iface
-	 * 			RDFBean interface
-	 * @return Collection of dynamic proxy objects with specified interface
+	 * 			RDFBean-compliant Java interface
+	 * @return Collection of dynamic proxy objects with the specified interface
 	 * @throws RDFBeanException
+	 * 			If iface is not a valid RDFBean interface
 	 * @throws RepositoryException 
 	 */
 	public <T> Collection<T> createAll(Class<T> iface) throws RDFBeanException, RepositoryException {
@@ -1093,9 +1137,8 @@ public class RDFBeanManager {
 	}
 
 	/**
-	 * Return the current ClassLoader for loading RDFBean classes.
+	 * Returns the current ClassLoader for loading RDFBean classes.
 	 * 
-	 * <p>
 	 * By default, the classes are loaded by the ClassLoader of this RDFBeanManager.  
 	 * 
 	 * @return the current ClassLoader instance
@@ -1107,9 +1150,8 @@ public class RDFBeanManager {
 	}
 
 	/**
-	 * Set a custom ClassLoader instance for loading RDFBean classes.
+	 * Sets a custom ClassLoader instance for loading RDFBean classes.
 	 * 
-	 * <p>
 	 * By default, the classes are loaded by the ClassLoader of this RDFBeanManager.
 	 *   
 	 * @param classLoader
@@ -1122,7 +1164,7 @@ public class RDFBeanManager {
 	}
 
 	/**
-	 * Return a current DatatypeMapper implementation.
+	 * Returns a current DatatypeMapper implementation.
 	 * 
 	 * @return the datatypeMapper
 	 * 
@@ -1133,7 +1175,7 @@ public class RDFBeanManager {
 	}
 
 	/**
-	 * Set a DatatypeMapper implementation.
+	 * Sets a DatatypeMapper implementation.
 	 * 
 	 * @param datatypeMapper
 	 *            the datatypeMapper to set
