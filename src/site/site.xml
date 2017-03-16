@@ -3,9 +3,9 @@
 		<menu name="RDFBeans">
 			<item name="Overview" href="index.html" />
 			<item name="Usage" href="usage.html" />
-			<item name="RDFBean format" href="rdfbean.html" />
-			<item name="Download" href="download.html" />
+			<item name="RDFBean format" href="rdfbean.html" />			
 			<item name="JavaDocs" href="apidocs/index.html" />
+			<item name="GitHub project" href="http://github.com/cyberborean/rdfbeans" />
 		</menu>
 		<menu ref="reports" />
 	</body>

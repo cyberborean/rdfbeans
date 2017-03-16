@@ -1,0 +1,45 @@
+body, li {
+	font-family: "Segoe UI",Helvetica,Arial,sans-serif;
+	font-size: 12pt;
+    line-height: 1.5em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-weight: normal;	
+	margin-bottom: 0.1em;
+    margin-top: 0.5em;
+}
+
+.nav-list > .active > a, .nav-list > .active > a:hover, .nav-list > .active > a:focus {
+    background-color: #900;
+    color: #fff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+a {
+    color: #900;
+    text-decoration: none;
+}
+
+.bannerLeft h2 {
+	font-size: 24pt;
+}
+
+.section p {
+	margin-left:0;
+	margin-right:0;
+}
+
+pre.prettyprint {
+	border:none;
+	padding:5px;
+}
+
+ul.toc li {
+	list-style-type:none;
+	margin-left:-20px;
+}
+
+ul.toc li li {
+	margin-left:10px;
+}

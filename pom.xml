@@ -10,7 +10,7 @@
 	<description>
 	  Java-RDF databinding framework
 	</description>
-	<url>http://rdfbeans.cyberborean.org</url>
+	<url>http://rdfbeans.github.io</url>
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
@@ -22,8 +22,8 @@
 		<developer>
 			<id>cyberborean</id>
 			<name>Alex Alishevskikh</name>
-			<email>alex {at} cyberborean {dot} org</email>
-			<url>http://cyberborean.org</url>
+			<email>alexeya {at} gmail {dot} com</email>
+			<url>http://blog.cyberborean.org</url>
 			<roles>
 				<role>developer</role>
 			</roles>
@@ -50,6 +50,11 @@
 		<system>GitHub Issues</system>
 		<url>https://github.com/cyberborean/rdfbeans/issues</url>
 	</issueManagement>
+	
+	<ciManagement>
+		<system>Travis CI</system>
+		<url>https://travis-ci.org/cyberborean/rdfbeans</url>
+	</ciManagement>
 	
 	<distributionManagement>
 		<snapshotRepository>
@@ -84,8 +89,8 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+	
 	<dependencies>
-
 		<!-- Sesame -->
 		<dependency>
 			<groupId>org.eclipse.rdf4j</groupId>
@@ -95,7 +100,7 @@
 			<groupId>org.eclipse.rdf4j</groupId>
 			<artifactId>rdf4j-model</artifactId>
 		</dependency>
-
+	
 		<!-- Logging -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -108,7 +113,7 @@
 			<version>${slf4j.version}</version>
 			<scope>provided</scope>
 		</dependency>
-
+	
 		<!-- Test dependencies -->
 		<dependency>
 			<groupId>org.eclipse.rdf4j</groupId>
@@ -131,7 +136,6 @@
 			<version>4.7</version>
 			<scope>test</scope>
 		</dependency>
-				
 	</dependencies>
 
 	<build>
@@ -210,6 +214,9 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
 				<version>3.5.1</version>
+				<configuration>
+        			<skipDeploy>true</skipDeploy>
+    			</configuration>
 				<dependencies>
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
@@ -217,6 +224,30 @@
 						<version>1.7</version>
 					</dependency>
 				</dependencies>
+			</plugin>
+		
+			<plugin>
+				<!-- Deploy the web site -->
+				<groupId>com.github.github</groupId>
+				<artifactId>site-maven-plugin</artifactId>
+				<version>0.12</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>site</goal>
+						</goals>
+						<phase>site-deploy</phase>
+						<configuration>
+							<repositoryName>rdfbeans.github.io</repositoryName>
+                			<repositoryOwner>RDFBeans</repositoryOwner>
+                			<branch>refs/heads/master</branch>
+							<server>github</server>	
+							<message>Web-site update</message>
+							<path>${site.path}</path>
+							<merge>true</merge>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 
 			<plugin>
