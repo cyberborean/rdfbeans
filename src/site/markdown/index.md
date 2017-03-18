@@ -1,45 +1,37 @@
-RDFBeans framework
-==================
+RDFBeans is an object-RDF mapping framework for Java. It provides ORM-like databinding functionality for RDF data models 
+with two basic techniques:
 
-RDFBeans is an object-RDF mapping library for the Java language, providing
-a framework for mapping an object-oriented domain model to RDF resource
-descriptions.
+  * Classic object persistence: basic CRUD (Create, Retrieve, Update and Delete) operations on the state of JavaBean-like POJO objects
 
-RDFBeans is built upon [RDF2Go](http://rdf2go.semweb4j.org/) high-level
-abstract model layer to provide object persistence with a number of existing
-RDF triple stores.
+  * Dynamic proxy mechanism for transparent access of RDF data using Java interfaces mapped directly 
+    to the underlying RDF model structures
 
-RDFBeans framework supports two basic techniques for mapping the data from Java
-applications to RDF:
+RDFBeans is built upon [Eclipse RDF4J](http://rdf4j.org/) (former Sesame) API
+to provide object persistence with a number of RDF storage implementations, including
+[third party RDF database solutions](http://rdf4j.org/about/rdf4j-databases/).
 
-* Persistence functionality to store and retrieve the state of class instances
-  to/from a RDF model
-* Dynamic proxy mechanism to access RDF data via Java interfaces mapped directly
-  to the model
+RDFBeans is based on Java Annotations mechanism. 
+No special interfaces and superclasses is required, that guarantees minimum 
+modifications of existing codebase and compatibility with other POJO-oriented 
+frameworks.   
+  
+Other features:
 
-RDFBeans uses Java Annotations mechanism for all framework-related sourcecode markup.
-No use of special interfaces and superclasses is required, that guarantees minimum
-modifications of existing codebase and compatibility with other JavaBean-oriented
-frameworks.
-
-
-Features (version 2.0)
-----------------------
-
- * Does not depend on specific triplestore implementation: any supported by RDF2Go API
-   can be used
- * Cascade databinding to reduce development time and ensure referential integrity of complex object data structures
- * Modular RDFBeans annotations: can be inherited from superclasses and interfaces
- * No predefined ontologies and RDF-schemas are required for RDF data.
- * Transactions support (triplestore-specific)
- * Extensible mechanism of mapping Java data types to RDF literals
- * Support of basic Java Collections, optionally represented with RDF containers
- * Support of indexed JavaBean properties
- * Support of RDF namespaces
+  * Built-in support of basic Java literal types mapped to standard XML-Schema literals; with ability to extend
+    it with custom algorithms to represent domain-specific data structures  
+  * Cascade databinding to reduce development time and to ensure referential integrity of complex object models  
+  * Support of basic Java Collections, optionally represented with RDF containers  
+  * Inheritance of RDFBeans annotations from superclasses and/or interfaces  
+  * Transaction-safe model updates  
+  * Virtual inversed properties to model [owl:inverseOf](http://www.w3.org/TR/2004/REC-owl-semantics-20040210/#owl_inverseOf)-like behavior (experimental)  
+  * Support of RDF namespaces
 
 
 See more
 --------
- * [RDFBeans usage](usage.html)
+
+ * [Quick Start Guide](quickstart.html)
+ 
  * [RDFBean annotations](rdfbean.html)
+ 
  * [RDFBeans API JavaDocs](apidocs/index.html)

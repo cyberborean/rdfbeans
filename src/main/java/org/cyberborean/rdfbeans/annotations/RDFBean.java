@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Applied to: Class or interface declaration
+ * Applied to: Class or interface declaration<br>
  * Value: String (required)
  * 
  * `@RDFBean` annotation declares that the annotated class or interface defines a

@@ -24,6 +24,31 @@ import java.lang.annotation.Target;
  *     return name;
  * }
  * ```
+ * Alternative `inverseOf` element specifies that this property is an inversion of a property defined on RDFBeans class returned by this method:
+ * 
+ * 
+```java
+{@literal @}RDFBean("urn:test:Parent")
+public class Parent {
+	...	
+	{@literal @}RDF(inverseOf="urn:test:hasParent")
+	public Child[] getChildren() {
+		return children;
+	}
+	...
+}
+
+{@literal @}RDFBean("urn:test:Child")
+public class Child {
+	...	
+	{@literal @}RDF("urn:test:hasParent")
+	public Parent getParent() {
+		return parent;
+	}
+	...
+}
+```  
+ *	
  * 
  */
 

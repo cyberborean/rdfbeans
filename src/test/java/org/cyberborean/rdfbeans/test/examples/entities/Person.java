@@ -1,11 +1,3 @@
-/**
- * Person.java
- * 
- * RDFBeans Mar 22, 2011 12:24:24 PM alex
- *
- * $Id:$
- *  
- */
 package org.cyberborean.rdfbeans.test.examples.entities;
 
 import java.net.URI;
@@ -15,9 +7,9 @@ import java.util.Date;
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFContainer;
+import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 import org.cyberborean.rdfbeans.annotations.RDFSubject;
-import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
 
 @RDFNamespaces({ "foaf = http://xmlns.com/foaf/0.1/",
 		"persons = http://rdfbeans.viceversatech.com/test-ontology/persons/" })

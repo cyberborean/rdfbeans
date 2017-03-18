@@ -36,9 +36,7 @@ import java.lang.annotation.Target;
  * {@literal @}RDFContainer(ContainerType.ALT)
  *  public String[] getNick() { 
  * ...
- * ```
- *
- * @author alex
+ * ``` 
  *
  */
 
