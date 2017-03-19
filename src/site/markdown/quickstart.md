@@ -8,8 +8,8 @@ Getting started
 
 ### Classes or interfaces?
 
-Before you start, you need to decide which of two databinding techniques supported by
-RDFBeans framework to be used.
+Before you start, it is good to know about two RDF databinding techniques provided by
+RDFBeans framework.
 
 The first method is based on use of RDFBean classes and it is much more like
 a traditional JavaBeans persistence technique. Here you declare a Java class with [RDFBeans annotations](rdfbean.html) and
@@ -20,7 +20,7 @@ You can sub-class your RDFBean classes to create complex polymorphic object mode
 The RDFBeans-annotated properties will be inherited down through the levels of your class hierarchy.  
 
 You may also want to extract interfaces from your classes to separate method signatures from their implementations.
-In this case, all RDFBeans annotations can be moved to the interfaces so the implementing classes would derive annotations implicitly.   
+In this case, all RDFBeans annotations can be moved to the interfaces so that the implementing classes would derive annotations implicitly.   
 
 This is where the second RDFBeans databinding method comes into play. If you
 have interfaces specifying RDFBean classes in your object model, you don't need their actual implementation classes.
