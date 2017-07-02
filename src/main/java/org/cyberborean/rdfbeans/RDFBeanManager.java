@@ -307,6 +307,11 @@ public class RDFBeanManager {
 		return null;
 	}
 
+   public <T> CloseableIteration<T, Exception> getAll(final Class<T> rdfBeanClass)
+            throws RDFBeanException, RepositoryException {
+       return getAll(rdfBeanClass, false);
+   }
+
 	/**
 	 * Returns an iterator over all objects of the specified Java class stored
 	 * in the RDF model.
@@ -325,7 +330,7 @@ public class RDFBeanManager {
 	 *             If the class is not a valid RDFBean class
 	 * @throws RepositoryException 
 	 */
-	public <T> CloseableIteration<T, Exception> getAll(final Class<T> rdfBeanClass)
+	public <T> CloseableIteration<T, Exception> getAll(final Class<T> rdfBeanClass, boolean includeInferred)
 			throws RDFBeanException, RepositoryException {
 		RDFBeanInfo rbi = RDFBeanInfo.get(rdfBeanClass);
 		IRI type = rbi.getRDFType();
@@ -353,7 +358,7 @@ public class RDFBeanManager {
 			};
 		}		
 		
-		final CloseableIteration<Statement, RepositoryException> sts = conn.getStatements(null, RDF.TYPE, type, false);
+		final CloseableIteration<Statement, RepositoryException> sts = conn.getStatements(null, RDF.TYPE, type, includeInferred);
 		
 		return new CloseableIteration<T, Exception>() {
 
