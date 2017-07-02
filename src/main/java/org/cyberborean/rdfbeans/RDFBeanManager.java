@@ -355,7 +355,7 @@ public class RDFBeanManager {
 			};
 		}		
 		
-		final CloseableIteration<Statement, RepositoryException> sts = conn.getStatements(null, RDF.TYPE, type, false);
+		final CloseableIteration<Statement, RepositoryException> sts = conn.getStatements(null, RDF.TYPE, type, false, contexts);
 		
 		return new CloseableIteration<T, Exception>() {
 
