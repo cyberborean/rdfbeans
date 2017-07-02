@@ -360,7 +360,7 @@ public class RDFBeanManager {
 			};
 		}		
 		
-		final CloseableIteration<Statement, RepositoryException> sts = conn.getStatements(null, RDF.TYPE, type, includeInferred);
+		final CloseableIteration<Statement, RepositoryException> sts = conn.getStatements(null, RDF.TYPE, type, includeInferred, contexts);
 		
 		return new CloseableIteration<T, Exception>() {
 
