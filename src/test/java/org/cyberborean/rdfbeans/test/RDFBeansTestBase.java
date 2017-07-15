@@ -21,12 +21,12 @@ public abstract class RDFBeansTestBase {
 	public void setupManager() throws Exception {
 		repo = new SailRepository(new MemoryStore());
         repo.initialize();   
-        manager = new RDFBeanManager(repo.getConnection());
+        manager = new RDFBeanManager(repo);
 	}
 	
 	@After
 	public void teardownManager() throws Exception {
-		manager.getRepositoryConnection().close();
+		manager.close();
         repo.shutDown();
 	}
 	

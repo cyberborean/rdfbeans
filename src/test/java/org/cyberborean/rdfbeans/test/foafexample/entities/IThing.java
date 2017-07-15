@@ -1,7 +1,7 @@
 /**
  * IThing.java
  * 
- * RDFBeans Feb 15, 2011 12:11:16 PM alex
+ * Constants Feb 15, 2011 12:11:16 PM alex
  *
  * $Id: IThing.java 21 2011-04-02 09:15:34Z alexeya $
  *  

@@ -1,7 +1,7 @@
 /**
  * Thing.java
  * 
- * RDFBeans Jan 28, 2011 9:28:50 AM alex
+ * Constants Jan 28, 2011 9:28:50 AM alex
  *
  * $Id: Thing.java 21 2011-04-02 09:15:34Z alexeya $
  *  

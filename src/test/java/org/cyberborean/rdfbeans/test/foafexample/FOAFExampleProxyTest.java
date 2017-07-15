@@ -16,7 +16,7 @@ import org.junit.Test;
 import org.eclipse.rdf4j.model.Resource;
 
 /**
- * A synthetic test for cascade proxy databinding and RDFBeans interfaces inheritance
+ * A synthetic test for cascade proxy databinding and Constants interfaces inheritance
  * 
  */
 public class FOAFExampleProxyTest extends RDFBeansTestBase {

@@ -1,7 +1,7 @@
 /**
  * IAgent.java
  * 
- * RDFBeans Feb 15, 2011 12:12:25 PM alex
+ * Constants Feb 15, 2011 12:12:25 PM alex
  *
  * $Id: IAgent.java 21 2011-04-02 09:15:34Z alexeya $
  *  

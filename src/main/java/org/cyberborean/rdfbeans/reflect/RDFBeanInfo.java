@@ -35,7 +35,7 @@ public class RDFBeanInfo {
 	
 	private static WeakHashMap<Class, RDFBeanInfo> rdfBeanInfoCache = new WeakHashMap<Class, RDFBeanInfo>();
 	
-	public static RDFBeanInfo get(Class rdfBeanClass)
+	public static synchronized RDFBeanInfo get(Class rdfBeanClass)
 			throws RDFBeanValidationException {
 		RDFBeanInfo rbi = rdfBeanInfoCache.get(rdfBeanClass);
 		if (rbi == null) {

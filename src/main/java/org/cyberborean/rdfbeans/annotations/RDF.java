@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
  *     return name;
  * }
  * ```
- * Alternative `inverseOf` element specifies that this property is an inversion of a property defined on RDFBeans class returned by this method:
+ * Alternative `inverseOf` element specifies that this property is an inversion of a property defined on Constants class returned by this method:
  * 
  * 
 ```java

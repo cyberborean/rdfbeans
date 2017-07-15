@@ -1,7 +1,7 @@
 /**
  * Agent.java
  * 
- * RDFBeans Jan 26, 2011 3:51:29 PM alex
+ * Constants Jan 26, 2011 3:51:29 PM alex
  *
  * $Id: Agent.java 21 2011-04-02 09:15:34Z alexeya $
  *  
