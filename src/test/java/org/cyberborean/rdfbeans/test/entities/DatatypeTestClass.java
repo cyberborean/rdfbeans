@@ -1,7 +1,7 @@
 /**
  * DatatypeTestClass.java
  * 
- * RDFBeans Feb 4, 2011 4:25:19 PM alex
+ * Constants Feb 4, 2011 4:25:19 PM alex
  *
  * $Id: DatatypeTestClass.java 21 2011-04-02 09:15:34Z alexeya $
  *  

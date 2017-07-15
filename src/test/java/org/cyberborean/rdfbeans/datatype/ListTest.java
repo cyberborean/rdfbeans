@@ -1,12 +1,22 @@
 package org.cyberborean.rdfbeans.datatype;
 
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.cyberborean.rdfbeans.test.entities.DatatypeTestClass;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
@@ -19,15 +29,9 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class ListTest {
     private SailRepository repo;
@@ -40,7 +44,7 @@ public class ListTest {
         RepositoryConnection initialFillConn = repo.getConnection();
         initialFillConn.add(getClass().getResourceAsStream("listUnmarshal.ttl"), "", RDFFormat.TURTLE);
         initialFillConn.close();
-        manager = new RDFBeanManager(repo.getConnection());
+        manager = new RDFBeanManager(repo);
     }
 
     @Test
@@ -141,7 +145,7 @@ public class ListTest {
 
     @After
     public void teardownManager() throws Exception {
-        manager.getRepositoryConnection().close();
+        manager.close();
         repo.shutDown();
     }
 }

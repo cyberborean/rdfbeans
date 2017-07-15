@@ -1,7 +1,7 @@
 /**
  * IDocument.java
  * 
- * RDFBeans Feb 15, 2011 12:13:31 PM alex
+ * Constants Feb 15, 2011 12:13:31 PM alex
  *
  * $Id: IDocument.java 30 2011-09-28 06:46:32Z alexeya $
  *  

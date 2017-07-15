@@ -19,7 +19,7 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
- * A synthetic test for cascade databinding and RDFBeans classes inheritance  
+ * A synthetic test for cascade databinding and Constants classes inheritance  
  * 
  */
 public class FOAFExampleTest extends RDFBeansTestBase {

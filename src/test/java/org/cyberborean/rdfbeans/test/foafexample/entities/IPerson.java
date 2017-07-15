@@ -1,7 +1,7 @@
 /**
  * IPerson.java
  * 
- * RDFBeans Feb 15, 2011 12:14:33 PM alex
+ * Constants Feb 15, 2011 12:14:33 PM alex
  *
  * $Id: IPerson.java 30 2011-09-28 06:46:32Z alexeya $
  *  
