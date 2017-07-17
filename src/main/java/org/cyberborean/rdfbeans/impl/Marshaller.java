@@ -56,15 +56,17 @@ public class Marshaller {
 				// NOP no pb, will create blank node
 			}
 		}
+		
+		if (subject == null) {
+			// Blank node
+			subject = conn.getValueFactory().createBNode();
+		}
 
 		// acquire write lock on this resource
 		ReadWriteLock lock = locks.getLock(subject);
 		lock.writeLock().lock();
 		try {			
-			if (subject == null) {
-				// Blank node
-				subject = conn.getValueFactory().createBNode();
-			} else if (conn.hasStatement(subject, null, null, false)) {
+			 if (!(subject instanceof BNode) && conn.hasStatement(subject, null, null, false)) {
 				// Resource is already in the model
 				if (update) {
 					// Remove existing triples
