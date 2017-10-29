@@ -88,9 +88,9 @@ public class Marshaller {
 			for (RDFProperty p : rbi.getProperties()) {
 				IRI predicate = p.getUri();
 				Object value = p.getValue(o);
-				//if (p.isInversionOfProperty()) {
-					//conn.remove((Resource) null, predicate, subject);
-				//}
+				if (p.isInversionOfProperty()) {
+					conn.remove((Resource) null, predicate, subject);
+				}
 				if (value != null) {
 					if (isCollection(value)) {
 						// Collection
