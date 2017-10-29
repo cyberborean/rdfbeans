@@ -15,7 +15,20 @@ public class RepositoryConnectionPool {
 
 		@Override
 		protected RepositoryConnection initialValue() {
-			return createNewConnection();
+			RepositoryConnection conn = repo.getConnection();
+			pool.put(Thread.currentThread(), conn);
+			return conn;
+		}
+
+		@Override
+		public RepositoryConnection get() {
+			RepositoryConnection conn = super.get();
+			if (!conn.isOpen()) {
+				// create new connection if the current one is closed
+				conn = initialValue();
+				set(conn);				
+			}
+			return conn;
 		}
 		
 	}; 
@@ -24,18 +37,8 @@ public class RepositoryConnectionPool {
 		this.repo = repo;
 	}
 	
-	private RepositoryConnection createNewConnection() {
-		RepositoryConnection conn = repo.getConnection();
-		pool.put(Thread.currentThread(), conn);
-		return conn;
-	}
-
 	public RepositoryConnection getConnection() throws RepositoryException {
-		RepositoryConnection conn = connHolder.get();
-		if (!conn.isOpen()) {
-			conn = createNewConnection();
-		}
-		return conn;
+		return connHolder.get();
 	}
 
 	public synchronized void closeAll() throws RepositoryException {
