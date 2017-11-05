@@ -1,4 +1,3 @@
-
 package org.cyberborean.rdfbeans.proxy;
 
 import org.eclipse.rdf4j.model.IRI;

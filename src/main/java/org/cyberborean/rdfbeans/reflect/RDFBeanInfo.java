@@ -1,4 +1,3 @@
-
 package org.cyberborean.rdfbeans.reflect;
 
 import java.awt.Image;

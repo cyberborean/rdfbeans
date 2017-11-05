@@ -1,4 +1,3 @@
-
 package org.cyberborean.rdfbeans.datatype;
 
 import java.text.DateFormat;

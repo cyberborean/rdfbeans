@@ -21,7 +21,7 @@ public class RepositoryConnectionPool {
 		}
 
 		@Override
-		public RepositoryConnection get() {
+		public RepositoryConnection get() {			
 			RepositoryConnection conn = super.get();
 			if (!conn.isOpen()) {
 				// create new connection if the current one is closed

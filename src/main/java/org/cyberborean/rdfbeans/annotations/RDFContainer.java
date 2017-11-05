@@ -1,4 +1,3 @@
-
 package org.cyberborean.rdfbeans.annotations;
 
 import java.lang.annotation.ElementType;

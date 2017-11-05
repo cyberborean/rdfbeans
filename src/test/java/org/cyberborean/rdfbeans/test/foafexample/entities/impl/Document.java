@@ -1,11 +1,3 @@
-/**
- * Document.java
- * 
- * Constants Jan 28, 2011 9:45:08 AM alex
- *
- * $Id: Document.java 36 2012-12-09 05:58:20Z alexeya $
- *  
- */
 package org.cyberborean.rdfbeans.test.foafexample.entities.impl;
 
 import org.cyberborean.rdfbeans.test.foafexample.entities.IDocument;

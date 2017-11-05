@@ -1,4 +1,3 @@
-
 package org.cyberborean.rdfbeans;
 
 import java.net.URISyntaxException;

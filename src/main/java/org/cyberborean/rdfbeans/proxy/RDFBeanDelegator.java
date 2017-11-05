@@ -1,4 +1,3 @@
-
 package org.cyberborean.rdfbeans.proxy;
 
 import java.beans.IndexedPropertyDescriptor;

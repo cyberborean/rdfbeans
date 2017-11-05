@@ -1,4 +1,3 @@
-
 package org.cyberborean.rdfbeans.util;
 
 import java.lang.ref.Reference;
