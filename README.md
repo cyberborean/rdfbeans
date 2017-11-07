@@ -17,7 +17,7 @@ No special interfaces and superclasses is required, that guarantees minimum
 modifications of existing codebase and compatibility with other POJO-oriented 
 frameworks.   
   
-##Features
+## Features
 
   * Cascade databinding to reduce development time and ensure referential integrity of complex object models
 
