@@ -42,7 +42,7 @@ Usage
 
 Include a Maven dependency into your project POM:
 
-```
+```xml
 <dependencies>
         <dependency>
             <groupId>org.cyberborean</groupId>
