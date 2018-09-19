@@ -38,67 +38,6 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 /**
  * Provides basic CRUD and dynamic proxy management functions for persisting RDFBean data objects using a RDF model stored in RDF4J repository.
  * 
- * RDFBeanManager is instantiated with opened RDF4J 
- * [RepositoryConnection](http://docs.rdf4j.org/javadoc/latest?org/eclipse/rdf4j/repository/RepositoryConnection.html) to an existing 
- * [Repository](http://docs.rdf4j.org/javadoc/latest?org/eclipse/rdf4j/repository/Repository.html) object. The client code is responsible
- * for opening and closing the repository connection, as well as initializing and shutting down the repository.
- * 
- * Example of usage:
- * 
- * ```java
- * Repository repo;
- * try {
- *     File dataDir = new File("C:\\temp\\myRepository\\");      
- *     repo = new SailRepository(new NativeStore(dataDir));
- *     repo.initialize();
- *     try (RepositoryConnection con = repo.getConnection()) {
- *         RDFBeanManager rdfBeanManager = new RDFBeanManager(con);          
- *         //... do something ...
- *     }
- * finally {
- *     repo.shutDown();   
- * }
- * ```
- * 
- * ### Multi-threading
- * 
- * This class, as well as RDF4J RepositoryConnection is **not thread-safe**. It is recommended that each thread obtain it's own 
- * RepositoryConnection from a shared Repository object and create a separate RDFBeanManager instance on it.
- * 
- * ### Transactions
- * 
- * By default, RDFBeanManager methods add or delete individual RDF statements in a transaction-safe manner. 
- * A method starts new transaction on RepositoryConnection before any update and commit it automatically after updates are completed. 
- * If the method throws an exception, the entire transaction is rolled back that guarantees that all updates the method made to this point 
- * will not take effect.
- * 
- * The behaviour is different if the method is invoked when RepositoryConnection already has an active transaction. 
- * In this case, the method does not start new transaction, but re-uses existing one by adding new operations to it. The updates will not take
- * effect until the transaction is committed. If an exception is thrown by the method, the transaction status is not changed (the client code is free
- * to roll it back on it's own).   
- * 
- * With this explicit transaction management, one can group multiple RDFBeanManager operations 
- * and treat them as a single update, as shown in the below example:
- *  
- * ```java
- * RepositoryConnection con = rdfBeanManager.getRepositoryConnection();
- * // start a transaction
- * con.begin();
- * try {
- *     // Add few RDFBean objects
- *     rdfBeanManager.add(object1);
- *     rdfBeanManager.add(object2);
- *     rdfBeanManager.add(object3);
- *     // Commit the above adds at once
- *     con.commit();
- * }
- * catch (Throwable t) {
- *     // Something went wrong, we roll the transaction back
- *     con.rollback();
- *     throw t;
- * }
- * ``` 
- * 
  */
 public class RDFBeanManager implements AutoCloseable {
 	
@@ -112,19 +51,29 @@ public class RDFBeanManager implements AutoCloseable {
 	private List<ProxyListener> proxyListeners = new Vector<ProxyListener>();
 
 	/**
-	 * Creates new RDFBeanManager instance upon the given RDF4J RepositoryConnection.
+	 * Creates new RDFBeanManager instance backed by the given RDF4J Repository.
 	 * 
-	 * @param conn
+	 * @param repo RDF4J Repository.
 	 */
 	public RDFBeanManager(Repository repo) {
 		this.connectionPool = new RepositoryConnectionPool(repo);
 		this.proxies = new ProxyInstancesPool(this);
 	}
 	
+	/**
+	 * Exposes a connection to RDF4J Repository for the current thread. If there is no opened connection for this thread,
+	 * it will be created. 
+	 * 
+	 * @return  RDF4J RepositoryConnection object
+	 */
 	public RepositoryConnection getRepositoryConnection() {		
 		return connectionPool.getConnection();
 	}
 	
+	/**
+	 * Closes this RDFBeanManager instance and RepositoryConnection objects for all threads.
+	 * 
+	 */
 	@Override
 	public void close() throws RepositoryException {
 		connectionPool.closeAll();
@@ -152,11 +101,11 @@ public class RDFBeanManager implements AutoCloseable {
 	 * determine which class to use for instatiation of the unmarshalled objects later. 
 	 * @see get(Resource) 
 	 *
-	 * If there is an active transaction started on RepositoryConnection, all
+	 * If there is an active transaction started on RepositoryConnection for the current thread, all
 	 * individual updates performed by this method are added to that
 	 * transaction. This means that the updates are not effective until the
 	 * transaction is committed. Otherwise, this method will start new
-	 * transaction under the hood to commit individual triple updates at once.
+	 * transaction to commit individual triple updates at once.
 	 * 
 	 * @param o
 	 *            RDFBean to add
@@ -181,10 +130,10 @@ public class RDFBeanManager implements AutoCloseable {
 	 * If no RDF representation for the given object is found, or if the object is an anonymous
 	 * RDFBean, the method works exactly like {@link #add(Object) add()}.
 	 *
-	 * If there is an active transaction started on RepositoryConnection, all individual 
+	 * If there is an active transaction started on RepositoryConnection for the current thread, all individual 
 	 * updates performed by this method are added to that transaction. That means that the updates
 	 * are not effective until the transaction is committed. Otherwise, this method will start new
-	 * transaction under the hood to commit individual triple updates at once.     
+	 * transaction to commit individual triple updates at once.     
 	 * 
 	 * @param o
 	 *            RDFBean to update
@@ -441,11 +390,11 @@ public class RDFBeanManager implements AutoCloseable {
 	 * 
 	 * It results in deletion of all statements where the given resource is either a subject or an object.
 	 * 
-	 * If there is an active transaction started on RepositoryConnection, all
+	 * If there is an active transaction started on RepositoryConnection for the current thread, all
 	 * individual updates performed by this method are added to that
 	 * transaction. That means that the updates are not effective until the
 	 * transaction is committed. Otherwise, this method will start new
-	 * transaction under the hood to commit individual triple updates at once.
+	 * transaction to commit individual triple updates at once.
 	 * 
 	 * @param uri Resource IRI
 	 * @return true if the resource existed in the model before deletion, false otherwise
@@ -499,11 +448,11 @@ public class RDFBeanManager implements AutoCloseable {
 	 * local part of fully qualified RDFBean name (RDF resource IRI). Otherwise,
 	 * the fully qualified name is expected.
 	 * 
-	 * If there is an active transaction started on RepositoryConnection, all
+	 * If there is an active transaction started on RepositoryConnection for the current thread, all
 	 * individual updates performed by this method are added to that
 	 * transaction. That means that the updates are not effective until the
 	 * transaction is committed. Otherwise, this method will start new
-	 * transaction under the hood to commit individual triple updates at once.
+	 * transaction to commit individual triple updates at once.
 	 * 
 	 * @param stringId
 	 *            RDFBean ID value
