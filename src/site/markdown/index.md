@@ -30,8 +30,8 @@ Other features:
 See more
 --------
 
- * [Quick Start Guide](quickstart.html)
+ * [RDFBeans programming guide](guide.html)
  
- * [RDFBean annotations](rdfbean.html)
+ * [RDFBean Annotations](rdfbean.html)
  
  * [RDFBeans API JavaDocs](apidocs/index.html)
