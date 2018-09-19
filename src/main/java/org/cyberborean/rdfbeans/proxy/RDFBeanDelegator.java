@@ -1,4 +1,3 @@
-
 package org.cyberborean.rdfbeans.proxy;
 
 import java.beans.IndexedPropertyDescriptor;
@@ -30,6 +29,7 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.GraphQuery;
 import org.eclipse.rdf4j.query.QueryLanguage;
@@ -64,14 +64,23 @@ public class RDFBeanDelegator implements InvocationHandler {
 	private Resource subject;
 	private RDFBeanInfo rdfBeanInfo;
 	private RDFBeanManager rdfBeanManager;
-	private final RepositoryConnection conn;
 
 	public RDFBeanDelegator(Resource subject, RDFBeanInfo rdfBeanInfo,
 			RDFBeanManager rdfBeanManager) {
 		this.subject = subject;
 		this.rdfBeanInfo = rdfBeanInfo;
-		this.rdfBeanManager = rdfBeanManager;
-		this.conn = rdfBeanManager.getRepositoryConnection();
+		this.rdfBeanManager = rdfBeanManager;		
+	}		
+	
+	private RepositoryConnection getRepositoryConnection() {
+		RepositoryConnection conn = rdfBeanManager.getRepositoryConnection();
+		
+		// make sure that model is opened
+		if (!conn.isOpen()) {
+			throw new IllegalStateException(rdfBeanInfo.getRDFBeanClass().getName() + ": RepositoryConnection is not opened");
+							
+		}
+		return conn;		
 	}
 
 	@Override
@@ -103,12 +112,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 			// no-op
 			return null;
 		}
-		// make sure that model is opened
-		if (!conn.isOpen()) {
-			throw new IllegalStateException("Cannot invoke " + method.getName() + " method in " + 
-					rdfBeanInfo.getRDFBeanClass().getName() + ": underlying RepositoryConnection is not opened");
-							
-		}
+		
 		// invoke RDFBean method
 		RDFProperty p = rdfBeanInfo.getPropertyForMethod(method);
 		if (p != null) {
@@ -176,6 +180,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 		"unchecked", "rawtypes"
 	})
 	private Object getValue(RDFProperty p) throws RDFBeanException, RepositoryException, RDF4JException {
+		RepositoryConnection conn = getRepositoryConnection();
 		Object result = null;
 		CloseableIteration<Statement, ? extends RDF4JException> sts;
 		if (p.isInversionOfProperty()) {
@@ -283,8 +288,9 @@ public class RDFBeanDelegator implements InvocationHandler {
 		if (object instanceof Literal) {
 			// literal
 			return rdfBeanManager.getDatatypeMapper().getJavaObject((Literal)object);
-		} 
+		}
 		else if (object instanceof BNode) {
+			RepositoryConnection conn = getRepositoryConnection();
 			// Blank node - check if an RDF collection
 			Resource r = (Resource) object;
 			if (conn.hasStatement(r, RDF.TYPE, RDF.BAG, false) 
@@ -340,6 +346,8 @@ public class RDFBeanDelegator implements InvocationHandler {
 		"unchecked", "rawtypes"
 	})
 	private void setValue(RDFProperty p, Object value) throws RDFBeanException, RepositoryException {		
+		RepositoryConnection conn = getRepositoryConnection();
+		
 		if (value == null) {			
 			if (p.isInversionOfProperty()) {
 				conn.remove((Resource)null, p.getUri(), subject);
@@ -380,7 +388,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 					Collection values = (Collection) value;
 					// Create multiple triples
 					for (Object v : values) {
-						Value object = toRdf(v);
+						Value object = toRdf(v, conn.getValueFactory());
 						if (object != null) {
 							if (p.isInversionOfProperty()) {
 								if (object instanceof Resource) {								
@@ -401,7 +409,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 				}
 				else {
 					// Single value
-					Value object = toRdf(value);
+					Value object = toRdf(value, conn.getValueFactory());
 					if (object != null) {	
 						if (p.isInversionOfProperty()) {
 							if (object instanceof Resource) {
@@ -440,7 +448,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 					conn.add(collection, RDF.TYPE, ctype);
 					int i = 1;
 					for (Object v : values) {
-						Value object = toRdf(v);
+						Value object = toRdf(v, conn.getValueFactory());
 						if (object != null) {
 							conn.add(collection,
 									conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i),
@@ -469,10 +477,10 @@ public class RDFBeanDelegator implements InvocationHandler {
 		
 	}
 
-	private synchronized Value toRdf(Object value)
+	private synchronized Value toRdf(Object value, ValueFactory valueFactory)
 			throws RDFBeanException {
 		// Check if a Literal
-		Literal l = rdfBeanManager.getDatatypeMapper().getRDFValue(value, conn.getValueFactory());
+		Literal l = rdfBeanManager.getDatatypeMapper().getRDFValue(value, valueFactory);
 		if (l != null) {
 			return l;
 		}
@@ -490,7 +498,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 		}
 		// Check if Java URI
 		if (java.net.URI.class.isAssignableFrom(value.getClass())) {
-			return conn.getValueFactory().createIRI(value.toString());
+			return valueFactory.createIRI(value.toString());
 		}
 		
 		throw new RDFBeanException("Unexpected value to set: " + value);

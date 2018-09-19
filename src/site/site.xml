@@ -2,7 +2,7 @@
 	<body>
 		<menu name="RDFBeans">
 			<item name="Overview" href="index.html" />
-			<item name="Quick Start Guide" href="quickstart.html" />
+			<item name="Programming Guide" href="guide.html" />
 			<item name="RDFBean format" href="rdfbean.html" />
 			<item name="Download" href="download.html" />			
 			<item name="JavaDoc" href="apidocs/index.html" />

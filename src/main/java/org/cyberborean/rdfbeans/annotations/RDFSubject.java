@@ -1,20 +1,3 @@
-/*
- * RDFSubject.java         
- * -----------------------------------------------------------------------------
- * Created           Jan 14, 2009 12:15:37 PM by alex
- * Latest revision   $Revision: 21 $
- *                   $Date: 2011-04-02 15:15:34 +0600 (Sat, 02 Apr 2011) $
- *                   $Author: alexeya $
- *
- * @VERSION@ 
- *
- * @COPYRIGHT@
- * 
- * @LICENSE@ 
- *
- * -----------------------------------------------------------------------------
- */
-
 package org.cyberborean.rdfbeans.annotations;
 
 import java.lang.annotation.ElementType;

@@ -1,4 +1,3 @@
-
 package org.cyberborean.rdfbeans.datatype;
 
 import org.eclipse.rdf4j.model.Literal;

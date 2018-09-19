@@ -1,4 +1,3 @@
-
 package org.cyberborean.rdfbeans.test.foafexample;
 
 import static org.junit.Assert.*;
@@ -12,14 +11,14 @@ import org.cyberborean.rdfbeans.test.RDFBeansTestBase;
 import org.cyberborean.rdfbeans.test.foafexample.entities.IPerson;
 import org.cyberborean.rdfbeans.test.foafexample.entities.impl.Document;
 import org.cyberborean.rdfbeans.test.foafexample.entities.impl.Person;
-import org.junit.Before;
-import org.junit.Test;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.repository.RepositoryException;
-import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
- * A synthetic test for cascade databinding and RDFBeans classes inheritance  
+ * A synthetic test for cascade databinding and Constants classes inheritance  
  * 
  */
 public class FOAFExampleTest extends RDFBeansTestBase {

@@ -1,11 +1,3 @@
-/**
- * IPerson.java
- * 
- * RDFBeans Feb 15, 2011 12:14:33 PM alex
- *
- * $Id: IPerson.java 30 2011-09-28 06:46:32Z alexeya $
- *  
- */
 package org.cyberborean.rdfbeans.test.foafexample.entities;
 
 import java.util.Set;
@@ -13,9 +5,9 @@ import java.util.Set;
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFContainer;
+import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 import org.cyberborean.rdfbeans.annotations.RDFSubject;
-import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
 
 /**
  * IPerson.

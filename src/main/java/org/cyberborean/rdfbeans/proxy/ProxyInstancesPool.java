@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.cyberborean.rdfbeans.proxy;
 
 import java.lang.reflect.Proxy;

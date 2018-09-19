@@ -1,11 +1,3 @@
-/**
- * DatatypeTestClass.java
- * 
- * RDFBeans Feb 4, 2011 4:25:19 PM alex
- *
- * $Id: DatatypeTestClass.java 21 2011-04-02 09:15:34Z alexeya $
- *  
- */
 package org.cyberborean.rdfbeans.test.entities;
 
 import java.util.Date;
@@ -16,8 +8,8 @@ import java.util.SortedSet;
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFContainer;
-import org.cyberborean.rdfbeans.annotations.RDFSubject;
 import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
+import org.cyberborean.rdfbeans.annotations.RDFSubject;
 
 /**
  * DatatypeTestClass.
