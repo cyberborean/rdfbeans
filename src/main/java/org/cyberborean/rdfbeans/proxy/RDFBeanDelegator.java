@@ -64,12 +64,14 @@ public class RDFBeanDelegator implements InvocationHandler {
 	private Resource subject;
 	private RDFBeanInfo rdfBeanInfo;
 	private RDFBeanManager rdfBeanManager;
+	private Resource[] contexts;
 
 	public RDFBeanDelegator(Resource subject, RDFBeanInfo rdfBeanInfo,
-			RDFBeanManager rdfBeanManager) {
+			RDFBeanManager rdfBeanManager, Resource... contexts) {
 		this.subject = subject;
 		this.rdfBeanInfo = rdfBeanInfo;
-		this.rdfBeanManager = rdfBeanManager;		
+		this.rdfBeanManager = rdfBeanManager;
+		this.contexts = contexts;
 	}		
 	
 	private RepositoryConnection getRepositoryConnection() {
@@ -184,7 +186,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 		Object result = null;
 		CloseableIteration<Statement, ? extends RDF4JException> sts;
 		if (p.isInversionOfProperty()) {
-			sts = conn.getStatements(null, p.getUri(), subject, false);
+			sts = conn.getStatements(null, p.getUri(), subject, false, contexts);
 			if (!sts.hasNext()) {
 				// try a container
 				GraphQuery q = conn.prepareGraphQuery(QueryLanguage.SPARQL, "CONSTRUCT { ?subject <" + p.getUri() + "> <" + subject + "> } " + 
@@ -195,7 +197,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 			}			
 		}
 		else {
-			sts = conn.getStatements(subject, p.getUri(), null, false);
+			sts = conn.getStatements(subject, p.getUri(), null, false, contexts);
 		}
 		// Determine field type
 		Class fClass = p.getPropertyType();
@@ -293,9 +295,9 @@ public class RDFBeanDelegator implements InvocationHandler {
 			RepositoryConnection conn = getRepositoryConnection();
 			// Blank node - check if an RDF collection
 			Resource r = (Resource) object;
-			if (conn.hasStatement(r, RDF.TYPE, RDF.BAG, false) 
-					|| conn.hasStatement(r, RDF.TYPE, RDF.SEQ, false)
-					|| conn.hasStatement(r, RDF.TYPE, RDF.ALT, false)) {	
+			if (conn.hasStatement(r, RDF.TYPE, RDF.BAG, false, contexts) 
+					|| conn.hasStatement(r, RDF.TYPE, RDF.SEQ, false, contexts)
+					|| conn.hasStatement(r, RDF.TYPE, RDF.ALT, false, contexts)) {	
 				// Collect all items (ordered)
 				ArrayList items = new ArrayList();
 				int i = 1;
@@ -305,7 +307,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 					RepositoryResult<Statement> itemst = conn.getStatements(
 							(Resource) object,
 							conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i),
-							null, false);
+							null, false, contexts);
 					if (itemst.hasNext()) {
 						item = unmarshalObject(itemst.next().getObject(), iface);
 						if (item != null) {
@@ -350,10 +352,10 @@ public class RDFBeanDelegator implements InvocationHandler {
 		
 		if (value == null) {			
 			if (p.isInversionOfProperty()) {
-				conn.remove((Resource)null, p.getUri(), subject);
+				conn.remove((Resource)null, p.getUri(), subject, contexts);
 			}
 			else {
-				conn.remove(subject, p.getUri(), null);
+				conn.remove(subject, p.getUri(), null, contexts);
 			}	
 			return;
 		}
@@ -376,10 +378,10 @@ public class RDFBeanDelegator implements InvocationHandler {
 		try {		
 			// Clear old values
 			if (p.isInversionOfProperty()) {
-				conn.remove((Resource)null, p.getUri(), subject);
+				conn.remove((Resource)null, p.getUri(), subject, contexts);
 			}
 			else {
-				conn.remove(subject, p.getUri(), null);
+				conn.remove(subject, p.getUri(), null, contexts);
 			}
 					
 			if (p.getContainerType() == ContainerType.NONE) {
@@ -392,7 +394,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 						if (object != null) {
 							if (p.isInversionOfProperty()) {
 								if (object instanceof Resource) {								
-									conn.add((Resource)object, p.getUri(), subject);
+									conn.add((Resource)object, p.getUri(), subject, contexts);
 								}
 								else {
 									throw new RDFBeanException("Value of the \"inverseOf\" property " + 
@@ -402,7 +404,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 								}
 							}
 							else {
-								conn.add(subject, p.getUri(), object);
+								conn.add(subject, p.getUri(), object, contexts);
 							}						
 						}
 					}
@@ -413,7 +415,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 					if (object != null) {	
 						if (p.isInversionOfProperty()) {
 							if (object instanceof Resource) {
-								conn.add((Resource)object, p.getUri(), subject);
+								conn.add((Resource)object, p.getUri(), subject, contexts);
 							}
 							else {
 								throw new RDFBeanException("Value of the \"inverseOf\" property " + 
@@ -423,7 +425,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 							}
 						}
 						else {
-							conn.add(subject, p.getUri(), object);
+							conn.add(subject, p.getUri(), object, contexts);
 						}					
 					}
 				}
@@ -445,18 +447,18 @@ public class RDFBeanDelegator implements InvocationHandler {
 						ctype = RDF.ALT;
 					}
 					BNode collection = conn.getValueFactory().createBNode();
-					conn.add(collection, RDF.TYPE, ctype);
+					conn.add(collection, RDF.TYPE, ctype, contexts);
 					int i = 1;
 					for (Object v : values) {
 						Value object = toRdf(v, conn.getValueFactory());
 						if (object != null) {
 							conn.add(collection,
 									conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i),
-									object);
+									object, contexts);
 							i++;
 						}
 					}
-					conn.add(subject, p.getUri(), collection);
+					conn.add(subject, p.getUri(), collection, contexts);
 				}
 				else {
 					throw new RDFBeanException("RDF container type is not allowed for a \"inverseOf\" property " +

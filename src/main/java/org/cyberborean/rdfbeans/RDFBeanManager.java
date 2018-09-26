@@ -116,8 +116,8 @@ public class RDFBeanManager implements AutoCloseable {
 	 * 
 	 * @see update(Object)
 	 */
-	public Resource add(Object o) throws RDFBeanException, RepositoryException {
-		return addOrUpdate(o, false);
+	public Resource add(Object o, Resource... contexts) throws RDFBeanException, RepositoryException {
+		return addOrUpdate(o, false, contexts);
 	}
 
 	/**
@@ -144,8 +144,8 @@ public class RDFBeanManager implements AutoCloseable {
 	 * 
 	 * @see add(Object)
 	 */
-	public synchronized Resource update(Object o) throws RDFBeanException, RepositoryException {
-		return addOrUpdate(o, true);
+	public synchronized Resource update(Object o, Resource... contexts) throws RDFBeanException, RepositoryException {
+		return addOrUpdate(o, true, contexts);
 	}
 
 	/**
@@ -168,11 +168,11 @@ public class RDFBeanManager implements AutoCloseable {
 	 * @see getAll(Class)
 	 */
 
-	public <T> T get(Resource r, Class<T> rdfBeanClass) throws RDFBeanException, RDF4JException {
+	public <T> T get(Resource r, Class<T> rdfBeanClass, Resource... contexts) throws RDFBeanException, RDF4JException {
 		if (!this.isResourceExist(r)) {
 			return null;
 		}
-		return this._get(r, rdfBeanClass);
+		return this._get(r, rdfBeanClass, contexts);
 	}
 
 	/**
@@ -194,11 +194,11 @@ public class RDFBeanManager implements AutoCloseable {
 	 * @see get(String,Class)
 	 * @see getAll(Class)
 	 */
-	public Object get(Resource r) throws RDFBeanException, RDF4JException {
+	public Object get(Resource r, Resource... contexts) throws RDFBeanException, RDF4JException {
 		if (!this.isResourceExist(r)) {
 			return null;
 		}		
-		return this._get(r, null);
+		return this._get(r, null, contexts);
 	}
 
 	/**
@@ -226,11 +226,11 @@ public class RDFBeanManager implements AutoCloseable {
 	 * @see get(Resource,Class)
 	 * @see getAll(Class)
 	 */
-	public <T> T get(String stringId, Class<T> rdfBeanClass)
+	public <T> T get(String stringId, Class<T> rdfBeanClass, Resource... contexts)
 			throws RDFBeanException, RDF4JException {
-		Resource r = this.getResource(stringId, rdfBeanClass);
+		Resource r = this.getResource(stringId, rdfBeanClass, contexts);
 		if (r != null) {
-			return this.get(r, rdfBeanClass);
+			return this.get(r, rdfBeanClass, contexts);
 		}
 		return null;
 	}
@@ -299,7 +299,7 @@ public class RDFBeanManager implements AutoCloseable {
 
 			@Override
 			public T next() throws Exception {
-				return _get(sts.next().getSubject(), rdfBeanClass);
+				return _get(sts.next().getSubject(), rdfBeanClass, contexts);
 			}
 
 			@Override
@@ -323,8 +323,8 @@ public class RDFBeanManager implements AutoCloseable {
 	 *         resource subject.
 	 * @throws RepositoryException 
 	 */
-	public boolean isResourceExist(Resource r) throws RepositoryException {
-		return hasStatement(r, null, null);
+	public boolean isResourceExist(Resource r, Resource... contexts) throws RepositoryException {
+		return hasStatement(r, null, null, contexts);
 	}
 	
 	/**
@@ -342,17 +342,17 @@ public class RDFBeanManager implements AutoCloseable {
 	 * 			If the class is not a valid RDFBean class
 	 * @throws RepositoryException 
 	 */
-	public boolean isResourceExist(Resource r, Class rdfBeanClass) throws RDFBeanValidationException, RepositoryException {
+	public boolean isResourceExist(Resource r, Class rdfBeanClass, Resource... contexts) throws RDFBeanValidationException, RepositoryException {
 		RDFBeanInfo rbi = RDFBeanInfo.get(rdfBeanClass);
-		return hasStatement(r, RDF.TYPE, rbi.getRDFType());
+		return hasStatement(r, RDF.TYPE, rbi.getRDFType(), contexts);
 	}
 	
 
-	private boolean hasStatement(Resource s, IRI p, Value o) throws RepositoryException {
+	private boolean hasStatement(Resource s, IRI p, Value o, Resource... contexts) throws RepositoryException {
 		ReadWriteLock lock = lockKeeper.getLock(s);
 		lock.readLock().lock();
 		try {
-			return getRepositoryConnection().hasStatement(s, p, o, false);
+			return getRepositoryConnection().hasStatement(s, p, o, false, contexts);
 		}
 		finally {
 			lock.readLock().unlock();
@@ -379,13 +379,13 @@ public class RDFBeanManager implements AutoCloseable {
 	 *             If the class is not a valid RDFBean class
 	 * @throws RepositoryException 
 	 */
-	public Resource getResource(String stringId, Class rdfBeanClass)
+	public Resource getResource(String stringId, Class rdfBeanClass, Resource... contexts)
 			throws RDFBeanException, RepositoryException {
 		SubjectProperty subject = RDFBeanInfo.get(rdfBeanClass)
 				.getSubjectProperty();
 		if (subject != null) {
 			IRI r = subject.getUri(stringId);
-			if (isResourceExist(r)) {
+			if (isResourceExist(r, contexts)) {
 				return r;
 			}
 		}
@@ -408,24 +408,24 @@ public class RDFBeanManager implements AutoCloseable {
 	 * @throws RepositoryException 
 	 * @see delete(String,Class)
 	 */
-	public boolean delete(Resource uri) throws RepositoryException {
-		if (isResourceExist(uri)) {
-			deleteInternal(uri);
+	public boolean delete(Resource uri, Resource... contexts) throws RepositoryException {
+		if (isResourceExist(uri, contexts)) {
+			deleteInternal(uri, contexts);
 			return true;
 		}
 		return false;
 	}
 	
-	private synchronized void deleteInternal(Resource uri) throws RepositoryException {
+	private synchronized void deleteInternal(Resource uri, Resource... contexts) throws RepositoryException {
 		RepositoryConnection conn = getRepositoryConnection();
 		boolean newTxn = maybeStartTransaction(conn);		
 		ReadWriteLock lock = lockKeeper.getLock(uri);
 		lock.writeLock().lock();
 		try {
 			// delete where is a subject
-			conn.remove(uri, null, null);
+			conn.remove(uri, null, null, contexts);
 			// delete where is an object
-			conn.remove((Resource)null, null, uri);
+			conn.remove((Resource)null, null, uri, contexts);
 			proxies.purge(uri);
 			if (newTxn) {
 				conn.commit();
@@ -471,20 +471,20 @@ public class RDFBeanManager implements AutoCloseable {
 	 * 
 	 * @see delete(Resource)
 	 */
-	public void delete(String stringId, Class rdfBeanClass)
+	public void delete(String stringId, Class rdfBeanClass, Resource... contexts)
 			throws RDFBeanException, RepositoryException {
-		Resource r = this.getResource(stringId, rdfBeanClass);
+		Resource r = this.getResource(stringId, rdfBeanClass, contexts);
 		if (r != null) {
-			this.delete(r);
+			this.delete(r, contexts);
 		}
 	}
 
-	private Resource addOrUpdate(Object o, boolean update) throws RDFBeanException, RepositoryException {
+	private Resource addOrUpdate(Object o, boolean update, Resource... contexts) throws RDFBeanException, RepositoryException {
 		RepositoryConnection conn = getRepositoryConnection(); 
 		boolean newTxn = maybeStartTransaction(conn);
 		Resource node;
 		try {
-			node = marshaller.marshal(conn, o, update);
+			node = marshaller.marshal(conn, o, update, contexts);
 			if (newTxn) {
 				conn.commit();
 			}
@@ -498,9 +498,12 @@ public class RDFBeanManager implements AutoCloseable {
 	}
 	
 	
-	private <T> T _get(Resource r, Class<T> cls) throws RDFBeanException, RDF4JException {
-		// Unmarshal the resource
-		return unmarshaller.unmarshal(getRepositoryConnection(), r, cls);
+	private <T> T _get(Resource r, Class<T> cls, Resource... contexts) throws RDFBeanException, RDF4JException {
+		if (isResourceExist(r, contexts)) {
+			// Unmarshal the resource
+			return unmarshaller.unmarshal(getRepositoryConnection(), r, cls, contexts);
+		}
+		return null;
 	}
 
 	// ================== RDFBean dynamic proxy functionality ==================
@@ -524,8 +527,8 @@ public class RDFBeanManager implements AutoCloseable {
 	 * @see create(String,Class)
 	 * @param <T>
 	 */
-	public <T> T create(Resource r, Class<T> iface) throws RDFBeanException, RepositoryException {
-		return createInternal(getRepositoryConnection(), r, RDFBeanInfo.get(iface), iface) ;
+	public <T> T create(Resource r, Class<T> iface, Resource... contexts) throws RDFBeanException, RepositoryException {
+		return createInternal(getRepositoryConnection(), r, RDFBeanInfo.get(iface), iface, contexts) ;
 	}
 
 	/**
@@ -551,21 +554,21 @@ public class RDFBeanManager implements AutoCloseable {
 	 *             
 	 * @see create(Resource,Class)
 	 */
-	public <T> T create(String id, Class<T> iface) throws RDFBeanException, RepositoryException {
+	public <T> T create(String id, Class<T> iface, Resource... contexts) throws RDFBeanException, RepositoryException {
 		RDFBeanInfo rbi = RDFBeanInfo.get(iface);
 		IRI uri = resolveUri(id, rbi);
 		if (uri == null) {
 			throw new RDFBeanException("Cannot resolve RDFBean ID: " + id);
 		}
-		return createInternal(getRepositoryConnection(), uri, rbi, iface);
+		return createInternal(getRepositoryConnection(), uri, rbi, iface, contexts);
 	}
 	
-	private <T> T createInternal(RepositoryConnection conn, Resource r, RDFBeanInfo rbi, Class<T> iface) throws RDFBeanException, RepositoryException {
+	private <T> T createInternal(RepositoryConnection conn, Resource r, RDFBeanInfo rbi, Class<T> iface, Resource... contexts) throws RDFBeanException, RepositoryException {
 		boolean newObject = false;
 		if (!isResourceExist(r)) {
 			boolean newTxn = maybeStartTransaction(conn);
 			try {
-				conn.add(r, RDF.TYPE, rbi.getRDFType());
+				conn.add(r, RDF.TYPE, rbi.getRDFType(), contexts);
 				//conn.add(rbi.getRDFType(), RDFBeanManager.BINDINGIFACE_PROPERTY, conn.getValueFactory().createLiteral(rbi.getRDFBeanClass().getName()));
 				if (newTxn) {
 					conn.commit();
@@ -579,7 +582,7 @@ public class RDFBeanManager implements AutoCloseable {
 			}
 			newObject = true;
 		}
-		T obj = proxies.getInstance(r, rbi, iface);
+		T obj = proxies.getInstance(r, rbi, iface, contexts);
 		if (newObject) {
 			fireObjectCreated(obj, iface, r);
 		}
@@ -599,7 +602,7 @@ public class RDFBeanManager implements AutoCloseable {
 	 * 			If iface is not a valid RDFBean interface
 	 * @throws RepositoryException 
 	 */
-	public <T> Collection<T> createAll(Class<T> iface) throws RDFBeanException, RepositoryException {
+	public <T> Collection<T> createAll(Class<T> iface, Resource... contexts) throws RDFBeanException, RepositoryException {
 		RDFBeanInfo rbi = RDFBeanInfo.get(iface);
 		IRI type = rbi.getRDFType();
 		Collection<T> result = new HashSet<T>(); 
@@ -609,9 +612,9 @@ public class RDFBeanManager implements AutoCloseable {
 		RepositoryConnection conn = getRepositoryConnection();
 		RepositoryResult<Statement> sts = null;
 		try {
-			sts = conn.getStatements(null, RDF.TYPE, type, false);
+			sts = conn.getStatements(null, RDF.TYPE, type, false, contexts);
 			while (sts.hasNext()) {
-				T proxy = createInternal(conn, sts.next().getSubject(), rbi, iface);
+				T proxy = createInternal(conn, sts.next().getSubject(), rbi, iface, contexts);
 				result.add(proxy);
 			}
 		}
