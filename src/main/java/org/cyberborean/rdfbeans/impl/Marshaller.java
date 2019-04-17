@@ -70,6 +70,10 @@ public class Marshaller {
 				// Resource is already in the model
 				if (update) {
 					// Remove existing triples
+					if (contexts.length == 0) {
+						// if no context is provided, only triples without context should be removed
+						contexts = new Resource[] { null };
+					}
 					conn.remove(subject, null, null, contexts);
 				} else {
 					// Will not be added
@@ -89,6 +93,10 @@ public class Marshaller {
 				IRI predicate = p.getUri();
 				Object value = p.getValue(o);
 				if (p.isInversionOfProperty()) {
+					if (contexts.length == 0) {
+						// if no context is provided, only triples without context should be removed
+						contexts = new Resource[] { null };
+					}
 					conn.remove((Resource) null, predicate, subject, contexts);
 				}
 				if (value != null) {
