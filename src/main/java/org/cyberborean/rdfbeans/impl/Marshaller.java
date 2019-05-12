@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
 import org.cyberborean.rdfbeans.datatype.DatatypeMapper;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
+import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
 import org.cyberborean.rdfbeans.reflect.RDFBeanInfo;
 import org.cyberborean.rdfbeans.reflect.RDFProperty;
 import org.cyberborean.rdfbeans.reflect.SubjectProperty;
@@ -19,6 +20,7 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 
@@ -88,6 +90,7 @@ public class Marshaller {
 			IRI type = rbi.getRDFType();
 			conn.add(subject, RDF.TYPE, type, contexts);
 			conn.add(type, Constants.BINDINGCLASS_PROPERTY, conn.getValueFactory().createLiteral(cls.getName()), contexts);
+			addSuperClassTypes(conn, rbi, contexts);
 			// Add properties
 			for (RDFProperty p : rbi.getProperties()) {
 				IRI predicate = p.getUri();
@@ -256,5 +259,17 @@ public class Marshaller {
 
 	public void setDatatypeMapper(DatatypeMapper dataTypeMapper) {
 		this.datatypeMapper = dataTypeMapper;
+	}
+	
+
+	private void addSuperClassTypes(RepositoryConnection conn, RDFBeanInfo rbi, Resource[] contexts) throws RDFBeanValidationException {
+		Class<?> superClass = rbi.getRDFBeanClass().getSuperclass();
+		if (superClass != null && RDFBeanInfo.isRdfBeanClass(superClass)) {
+			RDFBeanInfo superRbi = RDFBeanInfo.get(superClass);
+			if (superRbi != null) {
+				conn.add(rbi.getRDFType(), RDFS.SUBCLASSOF, superRbi.getRDFType(), contexts);
+				addSuperClassTypes(conn, superRbi, contexts);
+			}
+		}
 	}
 }

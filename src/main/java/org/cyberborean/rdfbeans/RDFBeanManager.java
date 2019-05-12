@@ -30,6 +30,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
@@ -711,9 +712,7 @@ public class RDFBeanManager implements AutoCloseable {
 			boolean newTxn = maybeStartTransaction(conn);
 			try {
 				conn.add(r, RDF.TYPE, rbi.getRDFType(), contexts);
-				// conn.add(rbi.getRDFType(),
-				// RDFBeanManager.BINDINGIFACE_PROPERTY,
-				// conn.getValueFactory().createLiteral(rbi.getRDFBeanClass().getName()));
+				addSuperInterfaceTypes(conn, rbi, contexts);
 				if (newTxn) {
 					conn.commit();
 				}
@@ -732,6 +731,19 @@ public class RDFBeanManager implements AutoCloseable {
 		return obj;
 	}
 
+	private void addSuperInterfaceTypes(RepositoryConnection conn, RDFBeanInfo rbi, Resource[] contexts) throws RDFBeanValidationException {
+		for (Class<?> superIface: rbi.getRDFBeanClass().getInterfaces()) {
+			if (RDFBeanInfo.isRdfBeanClass(superIface)) {
+				RDFBeanInfo superRbi = RDFBeanInfo.get(superIface);
+				if (superRbi != null) {
+					conn.add(rbi.getRDFType(), RDFS.SUBCLASSOF, superRbi.getRDFType(), contexts);
+					addSuperInterfaceTypes(conn, superRbi, contexts);
+				}
+			}
+		}
+		
+	}
+	
 	/**
 	 * Constructs all dynamic proxy objects implementing the specified Java
 	 * interface from their representations in the underlying RDF model.
