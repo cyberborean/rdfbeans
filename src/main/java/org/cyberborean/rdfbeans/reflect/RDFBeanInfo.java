@@ -281,7 +281,7 @@ public class RDFBeanInfo {
 		}
 		
 		private void introspect() throws IntrospectionException {
-			for (Class superIface: ReflectionUtil.getAllInterfaces(iface.getInterfaces())) {
+			for (Class superIface: ReflectionUtil.getAllInterfaces(iface)) {
 				BeanInfo superBeanInfo = Introspector.getBeanInfo(superIface);
 				properties = joinArrays(properties, superBeanInfo.getPropertyDescriptors());
 				events = joinArrays(events, superBeanInfo.getEventSetDescriptors());

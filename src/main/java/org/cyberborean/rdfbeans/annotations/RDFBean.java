@@ -1,6 +1,7 @@
 package org.cyberborean.rdfbeans.annotations;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -14,6 +15,8 @@ import java.lang.annotation.Target;
  * 
  * The mandatory value element of this annotation specifies a qualified name or an absolute URI of an RDF type of
  * resources representing instances of this class (interface) in RDF model.
+ * 
+ * This annotation type is defined with `@Inherited` meta-annotation, so if not declared, it is automatically inherited from a nearest superclass.
  * 
  * Examples:
  * 
@@ -35,6 +38,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
+@Inherited
 public @interface RDFBean {
 
 	/**

@@ -12,7 +12,7 @@ public class ReflectionUtil {
 		A ann = cls.getAnnotation(annotationType);
 		if (ann == null) {
 			// No class annotation present, inspect interfaces
-			for (Class<?> iface: cls.getInterfaces()) {
+			for (Class<?> iface: getAllInterfaces(cls)) {
 				ann = iface.getAnnotation(annotationType);
 				if (ann != null) {
 					break;
@@ -74,14 +74,13 @@ public class ReflectionUtil {
 			Arrays.hashCode(m.getParameterTypes());
 	}
 	
-	public static Class<?>[] getAllInterfaces(Class[] interfaces) {
+	public static List<Class<?>> getAllInterfaces(Class cls) {
 		List<Class<?>> allInterfaces = new ArrayList<>();
-		for (int i = 0; i < interfaces.length; i++) {
-			allInterfaces.add(interfaces[i]);
-			allInterfaces.addAll(
-				Arrays.asList(
-					getAllInterfaces(interfaces[i].getInterfaces())));
-		}
-		return allInterfaces.toArray(new Class[allInterfaces.size()]);
+		Class<?>[] interfaces = cls.getInterfaces();
+		allInterfaces.addAll(Arrays.asList(interfaces));
+		for (Class<?> iface: interfaces) {				
+			allInterfaces.addAll(getAllInterfaces(iface));
+		}	
+		return allInterfaces;
 	}
 }
