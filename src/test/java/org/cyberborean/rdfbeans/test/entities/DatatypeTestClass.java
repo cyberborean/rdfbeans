@@ -21,6 +21,7 @@ import org.cyberborean.rdfbeans.annotations.RDFSubject;
 public class DatatypeTestClass {
 	
 	String stringValue;
+	char charValue;
 	boolean booleanValue;	
 	int intValue;
 	float floatValue;
@@ -45,6 +46,11 @@ public class DatatypeTestClass {
 	@RDF("http://cyberborean.org/rdfbeans/2.0/test/datatype/string")
 	public String getStringValue() {
 		return stringValue;
+	}
+	
+	@RDF("http://cyberborean.org/rdfbeans/2.0/test/datatype/char")
+	public char getCharValue() {
+		return charValue;
 	}
 	
 	@RDF("http://cyberborean.org/rdfbeans/2.0/test/datatype/boolean")
@@ -132,6 +138,9 @@ public class DatatypeTestClass {
 	}	
 	public void setStringValue(String stringValue) {
 		this.stringValue = stringValue;
+	}
+	public void setCharValue(char charValue) {
+		this.charValue = charValue;
 	}
 	public void setBooleanValue(boolean booleanValue) {
 		this.booleanValue = booleanValue;

@@ -13,9 +13,9 @@ import java.util.TreeSet;
 
 import org.cyberborean.rdfbeans.test.RDFBeansTestBase;
 import org.cyberborean.rdfbeans.test.entities.DatatypeTestClass;
+import org.eclipse.rdf4j.model.Resource;
 import org.junit.Before;
 import org.junit.Test;
-import org.eclipse.rdf4j.model.Resource;
 
 public class DatatypeTest extends RDFBeansTestBase {
 	
@@ -26,6 +26,7 @@ public class DatatypeTest extends RDFBeansTestBase {
     public void setUp() throws Exception {
     	object = new DatatypeTestClass();
     	object.setStringValue("TEST");
+    	object.setCharValue('a');
     	object.setBooleanValue(true);
     	object.setIntValue(100);
     	object.setFloatValue(-3.141f);
@@ -45,6 +46,8 @@ public class DatatypeTest extends RDFBeansTestBase {
     	sortedSet.addAll(set);
         object.setSortedSetValue(sortedSet);
         resource = manager.add(object);
+        
+        this.dumpRepository();
     }
     
     @Test
@@ -55,6 +58,7 @@ public class DatatypeTest extends RDFBeansTestBase {
     	DatatypeTestClass object2 = (DatatypeTestClass)o;
     	assertNotSame(object, object2);
     	assertEquals(object.getStringValue(), object2.getStringValue());
+    	assertEquals(object.getCharValue(), object2.getCharValue());
     	assertEquals(object.isBooleanValue(), object2.isBooleanValue());
     	assertEquals(object.getIntValue(), object2.getIntValue());
     	assertEquals(object.getFloatValue(), object2.getFloatValue(), 0);

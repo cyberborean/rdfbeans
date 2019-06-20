@@ -32,6 +32,8 @@ public class DefaultDatatypeMapper implements DatatypeMapper {
 
 	private static final Map<Class<?>, IRI> DATATYPE_MAP = new HashMap<>();
 	static {
+		
+		// standard XML-Schema datatypes
 		DATATYPE_MAP.put(String.class, XMLSchema.STRING);
 		DATATYPE_MAP.put(Integer.class, XMLSchema.INT);
 		DATATYPE_MAP.put(Date.class, XMLSchema.DATETIME);
@@ -43,6 +45,9 @@ public class DefaultDatatypeMapper implements DatatypeMapper {
 		DATATYPE_MAP.put(Short.class, XMLSchema.SHORT);
 		DATATYPE_MAP.put(BigDecimal.class, XMLSchema.DECIMAL);
 		DATATYPE_MAP.put(java.net.URI.class, XMLSchema.ANYURI);
+		
+		// custom datatypes
+		DATATYPE_MAP.put(Character.class, Java.CHAR);
 	}
 
 	public static IRI getDatatypeURI(Class<?> c) {
@@ -93,15 +98,11 @@ public class DefaultDatatypeMapper implements DatatypeMapper {
 		}
 		else if (XMLSchema.DATETIME.equals(dt)) {
 			return l.calendarValue().toGregorianCalendar().getTime();
-			
-			/*
-			try {
-				return DateUtils.parseDate(s);
-			} catch (ParseException e) {
-				
-			}
-			*/
 		} 
+		else if (Java.CHAR.equals(dt)) {
+			String s = l.stringValue();
+			return s.length() > 0? l.stringValue().charAt(0) : '\u0000';
+		}
 		return l.stringValue();
 	}
 
