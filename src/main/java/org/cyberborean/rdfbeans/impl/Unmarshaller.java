@@ -48,13 +48,13 @@ public class Unmarshaller {
 		this.classLoader = classLoader;
 	}
 
-	public <T> T unmarshal(RepositoryConnection conn, Resource resource, Class<T> cls, Resource... contexts)
+	public <T> T unmarshal(RepositoryConnection conn, Resource resource, Class<T> cls, IRI context)
 			throws RDFBeanException, RDF4JException {		
-		return unmarshal(conn, resource, cls, new WeakHashMap<>(), contexts);
+		return unmarshal(conn, resource, cls, new WeakHashMap<>(), context);
 	}
 
 	private <T> T unmarshal(RepositoryConnection conn, Resource resource, Class<T> cls,
-			Map<Resource, Object> objectCache, Resource... contexts) throws RDFBeanException, RDF4JException {
+			Map<Resource, Object> objectCache, IRI context) throws RDFBeanException, RDF4JException {
 
 		// Check if the object is already retrieved
 		T o = (T) objectCache.get(resource);
@@ -67,7 +67,7 @@ public class Unmarshaller {
 		lock.readLock().lock();
 		try {
 			if (cls == null) {
-				cls = (Class<T>) getBindingClass(conn, resource, contexts);
+				cls = (Class<T>) getBindingClass(conn, resource, context);
 				if (cls == null) {
 					throw new RDFBeanException("Cannot detect a binding class for " + resource.stringValue());
 				}
@@ -91,7 +91,7 @@ public class Unmarshaller {
 				IRI predicate = p.getUri();
 				CloseableIteration<Statement, ? extends RDF4JException> statements;
 				if (p.isInversionOfProperty()) {
-					statements = conn.getStatements(null, predicate, resource, false, contexts);
+					statements = conn.getStatements(null, predicate, resource, false, (IRI)context);
 					if (!statements.hasNext()) {
 						// try a container
 						GraphQuery q = conn.prepareGraphQuery(QueryLanguage.SPARQL,
@@ -100,7 +100,7 @@ public class Unmarshaller {
 						statements = q.evaluate();
 					}
 				} else {
-					statements = conn.getStatements(resource, predicate, null, false, contexts);
+					statements = conn.getStatements(resource, predicate, null, false, (IRI)context);
 				}
 
 				// Collect all values
@@ -140,7 +140,7 @@ public class Unmarshaller {
 					}
 					// Collect values
 					for (Value value : values) {
-						Object object = unmarshalObject(conn, value, objectCache, contexts);
+						Object object = unmarshalObject(conn, value, objectCache, context);
 						if (object != null) {
 							if (object instanceof Collection) {
 								items.addAll((Collection) object);
@@ -154,7 +154,7 @@ public class Unmarshaller {
 				} else {
 					// Not a collection - get the first value only
 					Value value = values.iterator().next();
-					Object object = unmarshalObject(conn, value, objectCache, contexts);
+					Object object = unmarshalObject(conn, value, objectCache, context);
 					if (object != null) {
 						if ((object instanceof Collection) && ((Collection) object).iterator().hasNext()) {
 							object = ((Collection) object).iterator().next();
@@ -169,7 +169,7 @@ public class Unmarshaller {
 		}
 	}
 
-	private Object unmarshalObject(RepositoryConnection conn, Value object, Map<Resource, Object> objectCache, Resource... contexts)
+	private Object unmarshalObject(RepositoryConnection conn, Value object, Map<Resource, Object> objectCache, IRI context)
 			throws RDFBeanException, RDF4JException {
 		if (object instanceof Literal) {
 			// literal
@@ -178,8 +178,8 @@ public class Unmarshaller {
 			// Blank node - check if an RDF collection
 			Resource r = (Resource) object;
 
-			if (conn.hasStatement(r, RDF.TYPE, RDF.BAG, false, contexts) || conn.hasStatement(r, RDF.TYPE, RDF.SEQ, false, contexts)
-					|| conn.hasStatement(r, RDF.TYPE, RDF.ALT, false, contexts)) {
+			if (conn.hasStatement(r, RDF.TYPE, RDF.BAG, false, (IRI)context) || conn.hasStatement(r, RDF.TYPE, RDF.SEQ, false, (IRI)context)
+					|| conn.hasStatement(r, RDF.TYPE, RDF.ALT, false, (IRI)context)) {
 				// Collect all items (ordered)
 				ArrayList items = new ArrayList();
 				int i = 1;
@@ -187,10 +187,10 @@ public class Unmarshaller {
 				do {
 					item = null;
 					RepositoryResult<Statement> itemst = conn.getStatements((Resource) object,
-							conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i), null, false, contexts);
+							conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i), null, false, (IRI)context);
 					try {
 						if (itemst.hasNext()) {
-							item = unmarshalObject(conn, itemst.next().getObject(), objectCache, contexts);
+							item = unmarshalObject(conn, itemst.next().getObject(), objectCache, context);
 							if (item != null) {
 								items.add(item);
 							}
@@ -202,10 +202,10 @@ public class Unmarshaller {
 				} while (item != null);
 				// Return collection
 				return items;
-			} else if (conn.hasStatement(r, RDF.FIRST, null, false, contexts)) {
+			} else if (conn.hasStatement(r, RDF.FIRST, null, false, (IRI)context)) {
 				// Head-Tail list, also collect all items
 				ArrayList<Object> items = new ArrayList<Object>();
-				addList(conn, items, r, objectCache, contexts);
+				addList(conn, items, r, objectCache, context);
 				return items;
 			}
 		}
@@ -218,7 +218,7 @@ public class Unmarshaller {
 			ex.printStackTrace();
 		}
 		if (cls != null) {
-			return unmarshal(conn, (Resource) object, cls, objectCache);
+			return unmarshal(conn, (Resource) object, cls, objectCache, context);
 		}
 
 		// URI ?
@@ -226,12 +226,12 @@ public class Unmarshaller {
 	}
 
 	private void addList(RepositoryConnection conn, List<Object> list, final Resource currentHead,
-			Map<Resource, Object> objectCache, Resource... contexts) throws RDF4JException, RDFBeanException {
+			Map<Resource, Object> objectCache, IRI context) throws RDF4JException, RDFBeanException {
 		// add the "first" items.
-		RepositoryResult<Statement> firstStatements = conn.getStatements(currentHead, RDF.FIRST, null, false, contexts);
+		RepositoryResult<Statement> firstStatements = conn.getStatements(currentHead, RDF.FIRST, null, false, (IRI)context);
 		while (firstStatements.hasNext()) {
 			// multi-headed lists are possible, but flattened here.
-			Object item = unmarshalObject(conn, firstStatements.next().getObject(), objectCache, contexts);
+			Object item = unmarshalObject(conn, firstStatements.next().getObject(), objectCache, context);
 			if (item != null) {
 				list.add(item);
 			}
@@ -239,12 +239,12 @@ public class Unmarshaller {
 		firstStatements.close();
 
 		// follow non-rdf:nil rest(s), if any.
-		RepositoryResult<Statement> restStatements = conn.getStatements(currentHead, RDF.REST, null, false, contexts);
+		RepositoryResult<Statement> restStatements = conn.getStatements(currentHead, RDF.REST, null, false, (IRI)context);
 		while (restStatements.hasNext()) {
 			Value nextHead = restStatements.next().getObject();
 			if (!RDF.NIL.equals(nextHead)) {
 				if (nextHead instanceof BNode) {
-					addList(conn, list, (BNode) nextHead, objectCache, contexts);
+					addList(conn, list, (BNode) nextHead, objectCache, context);
 				}
 			}
 		}

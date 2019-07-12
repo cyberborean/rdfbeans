@@ -34,11 +34,11 @@ public class Marshaller {
 		this.datatypeMapper = dataTypeMapper;
 	}
 
-	public Resource marshal(RepositoryConnection conn, Object o, boolean update, Resource... contexts) throws RDFBeanException, RepositoryException {
-		return marshal(conn, o, update, new WeakHashMap<>(), contexts);
+	public Resource marshal(RepositoryConnection conn, Object o, boolean update, IRI context) throws RDFBeanException, RepositoryException {
+		return marshal(conn, o, update, new WeakHashMap<>(), context);
 	}
 	
-	private Resource marshal(RepositoryConnection conn, Object o, boolean update, Map<Object, Resource> resourceCache, Resource... contexts) throws RDFBeanException, RepositoryException {
+	private Resource marshal(RepositoryConnection conn, Object o, boolean update, Map<Object, Resource> resourceCache, IRI context) throws RDFBeanException, RepositoryException {
 		// Check if object is already marshalled
 		Resource subject = resourceCache.get(o);
 		if (subject != null && !update) {
@@ -68,15 +68,11 @@ public class Marshaller {
 		ReadWriteLock lock = locks.getLock(subject);
 		lock.writeLock().lock();
 		try {			
-			 if (!(subject instanceof BNode) && conn.hasStatement(subject, null, null, false, contexts)) {
+			 if (!(subject instanceof BNode) && conn.hasStatement(subject, null, null, false, (IRI)context)) {
 				// Resource is already in the model
 				if (update) {
 					// Remove existing triples
-					if (contexts.length == 0) {
-						// if no context is provided, only triples without context should be removed
-						contexts = new Resource[] { null };
-					}
-					conn.remove(subject, null, null, contexts);
+					conn.remove(subject, null, null, (IRI)context);
 				} else {
 					// Will not be added
 					return subject;
@@ -88,19 +84,15 @@ public class Marshaller {
 
 			// Add rdf:type
 			IRI type = rbi.getRDFType();
-			conn.add(subject, RDF.TYPE, type, contexts);
-			conn.add(type, Constants.BINDINGCLASS_PROPERTY, conn.getValueFactory().createLiteral(cls.getName()), contexts);
-			addSuperClassTypes(conn, rbi, contexts);
+			conn.add(subject, RDF.TYPE, type, (IRI)context);
+			conn.add(type, Constants.BINDINGCLASS_PROPERTY, conn.getValueFactory().createLiteral(cls.getName()), (IRI)context);
+			addSuperClassTypes(conn, rbi, context);
 			// Add properties
 			for (RDFProperty p : rbi.getProperties()) {
 				IRI predicate = p.getUri();
 				Object value = p.getValue(o);
 				if (p.isInversionOfProperty()) {
-					if (contexts.length == 0) {
-						// if no context is provided, only triples without context should be removed
-						contexts = new Resource[] { null };
-					}
-					conn.remove((Resource) null, predicate, subject, contexts);
+					conn.remove((Resource) null, predicate, subject, (IRI)context);
 				}
 				if (value != null) {
 					if (isCollection(value)) {
@@ -109,7 +101,7 @@ public class Marshaller {
 						if (p.getContainerType() == ContainerType.NONE) {
 							// Create multiple triples
 							for (Object v : values) {
-								Value object = toRdf(conn, v, resourceCache, contexts);
+								Value object = toRdf(conn, v, resourceCache, context);
 								if (object != null) {
 									if (p.isInversionOfProperty()) {
 										if (object instanceof Resource) {
@@ -119,7 +111,7 @@ public class Marshaller {
 												invLock.writeLock().lock();
 											}
 											try {												
-												conn.add((Resource) object, predicate, subject, contexts);
+												conn.add((Resource) object, predicate, subject, (IRI)context);
 											}
 											finally {
 												if (invLock != null) {
@@ -133,7 +125,7 @@ public class Marshaller {
 													+ "an RDFBean type (was: " + object.getClass().getName() + ")");
 										}
 									} else {
-										conn.add(subject, predicate, object, contexts);
+										conn.add(subject, predicate, object, (IRI)context);
 									}
 								}
 							}
@@ -144,7 +136,7 @@ public class Marshaller {
 												+ p.getPropertyDescriptor().getName() + " of class "
 												+ rbi.getRDFBeanClass().getName());
 							}
-							marshalLinkedList(conn, values, subject, p, resourceCache, contexts);
+							marshalLinkedList(conn, values, subject, p, resourceCache, context);
 						} else {
 							if (!p.isInversionOfProperty()) {
 								// Create RDF Container bNode
@@ -155,16 +147,16 @@ public class Marshaller {
 									ctype = RDF.ALT;
 								}
 								BNode collection = conn.getValueFactory().createBNode();
-								conn.add(collection, RDF.TYPE, ctype, contexts);
+								conn.add(collection, RDF.TYPE, ctype, (IRI)context);
 								int i = 1;
 								for (Object v : values) {
-									Value object = toRdf(conn, v, resourceCache, contexts);
+									Value object = toRdf(conn, v, resourceCache, context);
 									if (object != null) {
 										conn.add(collection, conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i++),
-												object, contexts);
+												object, (IRI)context);
 									}
 								}
-								conn.add(subject, predicate, collection, contexts);
+								conn.add(subject, predicate, collection, (IRI)context);
 							} else {
 								throw new RDFBeanException(
 										"RDF container type is not allowed for a \"inverseOf\" property "
@@ -174,7 +166,7 @@ public class Marshaller {
 						}
 					} else {
 						// Single value
-						Value object = toRdf(conn, value, resourceCache, contexts);
+						Value object = toRdf(conn, value, resourceCache, context);
 						if (object != null) {
 							if (p.isInversionOfProperty()) {
 								if (object instanceof Resource) {
@@ -184,7 +176,7 @@ public class Marshaller {
 										invLock.writeLock().lock();
 									}
 									try {												
-										conn.add((Resource) object, predicate, subject, contexts);
+										conn.add((Resource) object, predicate, subject, (IRI)context);
 									}
 									finally {
 										if (invLock != null) {
@@ -199,7 +191,7 @@ public class Marshaller {
 													+ "an RDFBean type (was: " + object.getClass().getName() + ")");
 								}
 							} else {
-								conn.add(subject, predicate, object, contexts);
+								conn.add(subject, predicate, object, (IRI)context);
 							}
 						}
 					}
@@ -211,30 +203,30 @@ public class Marshaller {
 		}
 	}
 
-	private void marshalLinkedList(RepositoryConnection conn, Collection values, Resource subject, RDFProperty property, Map<Object, Resource> resourceCache, Resource... contexts)
+	private void marshalLinkedList(RepositoryConnection conn, Collection values, Resource subject, RDFProperty property, Map<Object, Resource> resourceCache, IRI context)
 			throws RDFBeanException, RepositoryException {
 		BNode listHead = conn.getValueFactory().createBNode();
-		conn.add(subject, property.getUri(), listHead, contexts);
+		conn.add(subject, property.getUri(), listHead, (IRI)context);
 		Iterator<Object> value = values.iterator();
 		do {
 			if (value.hasNext()) {
-				Value valueNode = toRdf(conn, value.next(), resourceCache, contexts);
-				conn.add(listHead, RDF.FIRST, valueNode, contexts);
+				Value valueNode = toRdf(conn, value.next(), resourceCache, context);
+				conn.add(listHead, RDF.FIRST, valueNode, (IRI)context);
 			}
 			if (value.hasNext()) {
 				BNode newHead = conn.getValueFactory().createBNode();
-				conn.add(listHead, RDF.REST, newHead, contexts);
+				conn.add(listHead, RDF.REST, newHead, (IRI)context);
 				listHead = newHead;
 			} else {
-				conn.add(listHead, RDF.REST, RDF.NIL, contexts);
+				conn.add(listHead, RDF.REST, RDF.NIL, (IRI)context);
 			}
 		} while (value.hasNext());
 	}
 
-	private Value toRdf(RepositoryConnection conn, Object value, Map<Object, Resource> resourceCache, Resource... contexts) throws RDFBeanException, RepositoryException {
+	private Value toRdf(RepositoryConnection conn, Object value, Map<Object, Resource> resourceCache, IRI context) throws RDFBeanException, RepositoryException {
 		// Check if another RDFBean
 		if (RDFBeanInfo.isRdfBean(value)) {
-			return marshal(conn, value, false, resourceCache, contexts);
+			return marshal(conn, value, false, resourceCache, context);
 		}
 		// Check if URI
 		if (java.net.URI.class.isAssignableFrom(value.getClass())) {
@@ -262,13 +254,13 @@ public class Marshaller {
 	}
 	
 
-	private void addSuperClassTypes(RepositoryConnection conn, RDFBeanInfo rbi, Resource[] contexts) throws RDFBeanValidationException {
+	private void addSuperClassTypes(RepositoryConnection conn, RDFBeanInfo rbi, IRI context) throws RDFBeanValidationException {
 		Class<?> superClass = rbi.getRDFBeanClass().getSuperclass();
 		if (superClass != null && RDFBeanInfo.isRdfBeanClass(superClass)) {
 			RDFBeanInfo superRbi = RDFBeanInfo.get(superClass);
 			if (superRbi != null) {
-				conn.add(rbi.getRDFType(), RDFS.SUBCLASSOF, superRbi.getRDFType(), contexts);
-				addSuperClassTypes(conn, superRbi, contexts);
+				conn.add(rbi.getRDFType(), RDFS.SUBCLASSOF, superRbi.getRDFType(), (IRI)context);
+				addSuperClassTypes(conn, superRbi, context);
 			}
 		}
 	}

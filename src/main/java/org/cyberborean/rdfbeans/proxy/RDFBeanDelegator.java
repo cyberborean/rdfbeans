@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.cyberborean.rdfbeans.RDFBeanManager;
+import org.cyberborean.rdfbeans.RDFBeanManagerContext;
 import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanValidationException;
@@ -63,19 +63,19 @@ public class RDFBeanDelegator implements InvocationHandler {
 
 	private Resource subject;
 	private RDFBeanInfo rdfBeanInfo;
-	private RDFBeanManager rdfBeanManager;
-	private Resource[] contexts;
+	private RDFBeanManagerContext rdfBeanManagerContext;
+	private IRI context;
 
 	public RDFBeanDelegator(Resource subject, RDFBeanInfo rdfBeanInfo,
-			RDFBeanManager rdfBeanManager, Resource... contexts) {
+			RDFBeanManagerContext rdfBeanManagerContext) {
 		this.subject = subject;
 		this.rdfBeanInfo = rdfBeanInfo;
-		this.rdfBeanManager = rdfBeanManager;
-		this.contexts = contexts;
+		this.rdfBeanManagerContext = rdfBeanManagerContext;
+		this.context = rdfBeanManagerContext.getContext();
 	}		
 	
 	private RepositoryConnection getRepositoryConnection() {
-		RepositoryConnection conn = rdfBeanManager.getRepositoryConnection();
+		RepositoryConnection conn = rdfBeanManagerContext.getRepositoryConnection();
 		
 		// make sure that model is opened
 		if (!conn.isOpen()) {
@@ -186,7 +186,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 		Object result = null;
 		CloseableIteration<Statement, ? extends RDF4JException> sts;
 		if (p.isInversionOfProperty()) {
-			sts = conn.getStatements(null, p.getUri(), subject, false, contexts);
+			sts = conn.getStatements(null, p.getUri(), subject, false, (IRI)context);
 			if (!sts.hasNext()) {
 				// try a container
 				GraphQuery q = conn.prepareGraphQuery(QueryLanguage.SPARQL, "CONSTRUCT { ?subject <" + p.getUri() + "> <" + subject + "> } " + 
@@ -197,7 +197,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 			}			
 		}
 		else {
-			sts = conn.getStatements(subject, p.getUri(), null, false, contexts);
+			sts = conn.getStatements(subject, p.getUri(), null, false, (IRI)context);
 		}
 		// Determine field type
 		Class fClass = p.getPropertyType();
@@ -289,15 +289,15 @@ public class RDFBeanDelegator implements InvocationHandler {
 	private Object unmarshalObject(Value object, Class<?> iface) throws RDFBeanException, RepositoryException {
 		if (object instanceof Literal) {
 			// literal
-			return rdfBeanManager.getDatatypeMapper().getJavaObject((Literal)object);
+			return rdfBeanManagerContext.getDatatypeMapper().getJavaObject((Literal)object);
 		}
 		else if (object instanceof BNode) {
 			RepositoryConnection conn = getRepositoryConnection();
 			// Blank node - check if an RDF collection
 			Resource r = (Resource) object;
-			if (conn.hasStatement(r, RDF.TYPE, RDF.BAG, false, contexts) 
-					|| conn.hasStatement(r, RDF.TYPE, RDF.SEQ, false, contexts)
-					|| conn.hasStatement(r, RDF.TYPE, RDF.ALT, false, contexts)) {	
+			if (conn.hasStatement(r, RDF.TYPE, RDF.BAG, false, (IRI)context) 
+					|| conn.hasStatement(r, RDF.TYPE, RDF.SEQ, false, (IRI)context)
+					|| conn.hasStatement(r, RDF.TYPE, RDF.ALT, false, (IRI)context)) {	
 				// Collect all items (ordered)
 				ArrayList items = new ArrayList();
 				int i = 1;
@@ -307,7 +307,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 					RepositoryResult<Statement> itemst = conn.getStatements(
 							(Resource) object,
 							conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i),
-							null, false, contexts);
+							null, false, (IRI)context);
 					if (itemst.hasNext()) {
 						item = unmarshalObject(itemst.next().getObject(), iface);
 						if (item != null) {
@@ -324,7 +324,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 		else if (object instanceof IRI) {
 			// Possibly, another RDFBean
 			// try to construct a bean proxy using provided interface
-			Object proxy = rdfBeanManager.create((IRI) object, iface);
+			Object proxy = rdfBeanManagerContext.create((IRI) object, iface);
 			if (proxy != null) {
 				return proxy;
 			}
@@ -352,10 +352,10 @@ public class RDFBeanDelegator implements InvocationHandler {
 		
 		if (value == null) {			
 			if (p.isInversionOfProperty()) {
-				conn.remove((Resource)null, p.getUri(), subject, contexts);
+				conn.remove((Resource)null, p.getUri(), subject, (IRI)context);
 			}
 			else {
-				conn.remove(subject, p.getUri(), null, contexts);
+				conn.remove(subject, p.getUri(), null, (IRI)context);
 			}	
 			return;
 		}
@@ -378,10 +378,10 @@ public class RDFBeanDelegator implements InvocationHandler {
 		try {		
 			// Clear old values
 			if (p.isInversionOfProperty()) {
-				conn.remove((Resource)null, p.getUri(), subject, contexts);
+				conn.remove((Resource)null, p.getUri(), subject, (IRI)context);
 			}
 			else {
-				conn.remove(subject, p.getUri(), null, contexts);
+				conn.remove(subject, p.getUri(), null, (IRI)context);
 			}
 					
 			if (p.getContainerType() == ContainerType.NONE) {
@@ -394,7 +394,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 						if (object != null) {
 							if (p.isInversionOfProperty()) {
 								if (object instanceof Resource) {								
-									conn.add((Resource)object, p.getUri(), subject, contexts);
+									conn.add((Resource)object, p.getUri(), subject, (IRI)context);
 								}
 								else {
 									throw new RDFBeanException("Value of the \"inverseOf\" property " + 
@@ -404,7 +404,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 								}
 							}
 							else {
-								conn.add(subject, p.getUri(), object, contexts);
+								conn.add(subject, p.getUri(), object, (IRI)context);
 							}						
 						}
 					}
@@ -415,7 +415,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 					if (object != null) {	
 						if (p.isInversionOfProperty()) {
 							if (object instanceof Resource) {
-								conn.add((Resource)object, p.getUri(), subject, contexts);
+								conn.add((Resource)object, p.getUri(), subject, (IRI)context);
 							}
 							else {
 								throw new RDFBeanException("Value of the \"inverseOf\" property " + 
@@ -425,7 +425,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 							}
 						}
 						else {
-							conn.add(subject, p.getUri(), object, contexts);
+							conn.add(subject, p.getUri(), object, (IRI)context);
 						}					
 					}
 				}
@@ -447,18 +447,18 @@ public class RDFBeanDelegator implements InvocationHandler {
 						ctype = RDF.ALT;
 					}
 					BNode collection = conn.getValueFactory().createBNode();
-					conn.add(collection, RDF.TYPE, ctype, contexts);
+					conn.add(collection, RDF.TYPE, ctype, (IRI)context);
 					int i = 1;
 					for (Object v : values) {
 						Value object = toRdf(v, conn.getValueFactory());
 						if (object != null) {
 							conn.add(collection,
 									conn.getValueFactory().createIRI(RDF.NAMESPACE, "_" + i),
-									object, contexts);
+									object, (IRI)context);
 							i++;
 						}
 					}
-					conn.add(subject, p.getUri(), collection, contexts);
+					conn.add(subject, p.getUri(), collection, (IRI)context);
 				}
 				else {
 					throw new RDFBeanException("RDF container type is not allowed for a \"inverseOf\" property " +
@@ -482,7 +482,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 	private synchronized Value toRdf(Object value, ValueFactory valueFactory)
 			throws RDFBeanException {
 		// Check if a Literal
-		Literal l = rdfBeanManager.getDatatypeMapper().getRDFValue(value, valueFactory);
+		Literal l = rdfBeanManagerContext.getDatatypeMapper().getRDFValue(value, valueFactory);
 		if (l != null) {
 			return l;
 		}
@@ -508,7 +508,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 	
 	
 	private void fireObjectPropertyChanged(Object object, IRI property, Object newValue) {
-		for (ProxyListener l : rdfBeanManager.getProxyListeners()) {
+		for (ProxyListener l : rdfBeanManagerContext.getProxyListeners()) {
 			l.objectPropertyChanged(object, property, newValue);
 		}
 	}

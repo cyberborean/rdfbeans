@@ -3,7 +3,6 @@ package org.cyberborean.rdfbeans.test.namedgraphs;
 import static org.junit.Assert.*;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
@@ -11,6 +10,7 @@ import java.util.Set;
 import org.cyberborean.rdfbeans.test.RDFBeansTestBase;
 import org.cyberborean.rdfbeans.test.examples.entities.Person;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.junit.Before;
@@ -28,9 +28,9 @@ public class ExampleClassTest extends RDFBeansTestBase {
 
 	Resource subject;
 
-	Resource graph0;
-	Resource graph1;
-	Resource graph2;
+	IRI graph0;
+	IRI graph1;
+	IRI graph2;
 
 	@Before
 	public void setUp() throws Exception {
@@ -75,7 +75,10 @@ public class ExampleClassTest extends RDFBeansTestBase {
 		graph1 = manager.getRepositoryConnection().getValueFactory().createIRI("urn:contexts:1");
 		graph2 = manager.getRepositoryConnection().getValueFactory().createIRI("urn:contexts:2");
 
-		subject = manager.add(john, graph1, graph2);
+		// add object to two contexts and without one
+		subject = manager.add(john);
+		manager.getContext(graph1).add(john);
+		manager.getContext(graph2).add(john);
 	}
 
 	private void checkIsJohn(Person p2) {
@@ -105,8 +108,10 @@ public class ExampleClassTest extends RDFBeansTestBase {
 	
 	@Test
 	public void testCheckResourceExists() throws RepositoryException {
-		assertTrue(manager.isResourceExist(subject, graph1, graph2));
-		assertFalse(manager.isResourceExist(subject, graph0));
+		assertTrue(manager.isResourceExist(subject));
+		assertTrue(manager.getContext(graph1).isResourceExist(subject));
+		assertTrue(manager.getContext(graph2).isResourceExist(subject));
+		assertFalse(manager.getContext(graph0).isResourceExist(subject));
 	}
 
 	@Test
@@ -114,20 +119,20 @@ public class ExampleClassTest extends RDFBeansTestBase {
 		_testGet(graph1);
 		_testGet(graph2);
 
-		Person p2 = (Person) manager.get(subject, graph0);
+		Person p2 = (Person) manager.getContext(graph0).get(subject);
 		assertNull(p2);
-		p2 = manager.get(john.getId(), Person.class, graph0);
+		p2 = manager.getContext(graph0).get(john.getId(), Person.class);
 		assertNull(p2);
-		p2 = manager.get(subject, Person.class, graph0);
+		p2 = manager.getContext(graph0).get(subject, Person.class);
 		assertNull(p2);
 	}
 
-	private void _testGet(Resource graph) throws Exception {
-		Person p2 = (Person) manager.get(subject, graph);
+	private void _testGet(IRI graph) throws Exception {
+		Person p2 = (Person) manager.getContext(graph).get(subject);
 		checkIsJohn(p2);
-		p2 = manager.get(john.getId(), Person.class, graph);
+		p2 = manager.getContext(graph).get(john.getId(), Person.class);
 		checkIsJohn(p2);
-		p2 = manager.get(subject, Person.class, graph);
+		p2 = manager.getContext(graph).get(subject, Person.class);
 		checkIsJohn(p2);
 	}
 
@@ -136,14 +141,14 @@ public class ExampleClassTest extends RDFBeansTestBase {
 		_testGetAll(graph1);
 		_testGetAll(graph2);
 		
-		CloseableIteration<Person, Exception> iter = manager.getAll(Person.class, graph0);
+		CloseableIteration<Person, Exception> iter = manager.getContext(graph0).getAll(Person.class);
 		assertFalse(iter.hasNext());
 		iter.close();
 		
 	}
 	
-	private void _testGetAll(Resource graph) throws Exception {
-		CloseableIteration<Person, Exception> iter = manager.getAll(Person.class, graph);
+	private void _testGetAll(IRI graph) throws Exception {
+		CloseableIteration<Person, Exception> iter = manager.getContext(graph).getAll(Person.class);
 		Set<Person> s = new HashSet<>();
 		while (iter.hasNext()) {
 			Object o = iter.next();
@@ -156,51 +161,59 @@ public class ExampleClassTest extends RDFBeansTestBase {
 
 	@Test
 	public void testGetResource() throws Exception {
-		Resource r = manager.getResource(john.getId(), Person.class, graph1);
+		Resource r = manager.getContext(graph1).getResource(john.getId(), Person.class);
 		assertEquals(r, subject);
 		
-		r = manager.getResource(john.getId(), Person.class, graph2);
+		r = manager.getContext(graph2).getResource(john.getId(), Person.class);
 		assertEquals(r, subject);
 		
-		r = manager.getResource(john.getId(), Person.class, graph0);
+		r = manager.getContext(graph0).getResource(john.getId(), Person.class);
 		assertNull(r);
 	}
 
 	@Test
 	public void testUpdate() throws Exception {
-		// change copy in one context only
-		john.setName("John C. Doe");
-		String[] nicks = Arrays.copyOf(john.getNick(), john.getNick().length + 1);
-		nicks[nicks.length - 1] = "John C. Doe";
-		john.setNick(nicks);
-		Resource r = manager.update(john, graph1);
-		checkIsJohn((Person) manager.get(r, graph1));
-		
-		Person p = (Person) manager.get(r, graph2);
-		assertEquals(p.getId(), john.getId());
-		assertFalse(p.getName().equals(john.getName()));
+//		john.setName("John C. Doe");
+//		String[] nicks = Arrays.copyOf(john.getNick(), john.getNick().length + 1);
+//		nicks[nicks.length - 1] = "John C. Doe";
+//		john.setNick(nicks);
+//		
+//		// update object without context
+//		Resource r = manager.update(john);
+//		checkIsJohn((Person) manager.get(r, (Resource)null));
+//		
+//		// update object in one context
+//		r = manager.update(john, graph1);
+//		checkIsJohn((Person) manager.get(r, graph1));		
+//		Person p = (Person) manager.get(r, graph2);
+//		assertEquals(p.getId(), john.getId());
+//		assertFalse(p.getName().equals(john.getName()));
+//				
+//		r = manager.update(john);
+//		checkIsJohn((Person) manager.get(r, graph1));
+//		checkIsJohn((Person) manager.get(r, graph2));
 	}
 
 	@Test
 	public void testDelete1() throws Exception {
-		assertTrue(manager.isResourceExist(subject, graph1));
-		assertTrue(manager.isResourceExist(subject, graph2));
-		manager.delete(subject, graph1);
-		assertFalse(manager.isResourceExist(subject, graph1));
-		assertNull(manager.get(subject, graph1));
-		assertTrue(manager.isResourceExist(subject, graph2));;
-		assertNotNull(manager.get(subject, graph2));
+		assertTrue(manager.getContext(graph1).isResourceExist(subject));
+		assertTrue(manager.getContext(graph2).isResourceExist(subject));
+		manager.getContext(graph1).delete(subject);
+		assertFalse(manager.getContext(graph1).isResourceExist(subject));
+		assertNull(manager.getContext(graph1).get(subject));
+		assertTrue(manager.getContext(graph2).isResourceExist(subject));
+		assertNotNull(manager.getContext(graph2).get(subject));
 	}
 
 	@Test
 	public void testDelete2() throws Exception {
-		assertTrue(manager.isResourceExist(subject, graph1));
-		assertTrue(manager.isResourceExist(subject, graph2));
-		manager.delete(john.getId(), Person.class, graph1);
-		assertFalse(manager.isResourceExist(subject, graph1));
-		assertNull(manager.get(subject, graph1));
-		assertTrue(manager.isResourceExist(subject, graph2));;
-		assertNotNull(manager.get(subject, graph2));
+		assertTrue(manager.getContext(graph1).isResourceExist(subject));
+		assertTrue(manager.getContext(graph2).isResourceExist(subject));
+		manager.getContext(graph1).delete(john.getId(), Person.class);
+		assertFalse(manager.getContext(graph1).isResourceExist(subject));
+		assertNull(manager.getContext(graph1).get(subject));
+		assertTrue(manager.getContext(graph2).isResourceExist(subject));
+		assertNotNull(manager.getContext(graph2).get(subject));
 	}
 
 }

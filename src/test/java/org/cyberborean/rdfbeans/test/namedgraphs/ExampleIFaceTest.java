@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.cyberborean.rdfbeans.test.RDFBeansTestBase;
 import org.cyberborean.rdfbeans.test.examples.entities.IPerson;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,9 +25,9 @@ public class ExampleIFaceTest extends RDFBeansTestBase {
     
     Resource subject;
     
-    Resource graph0;
-	Resource graph1;
-	Resource graph2;
+    IRI graph0;
+    IRI graph1;
+    IRI graph2;
     
     @Before
     public void setUp() throws Exception {    	    	
@@ -35,7 +36,7 @@ public class ExampleIFaceTest extends RDFBeansTestBase {
 		graph1 = manager.getRepositoryConnection().getValueFactory().createIRI("urn:contexts:1");
 		graph2 = manager.getRepositoryConnection().getValueFactory().createIRI("urn:contexts:2");
 		
-    	john = manager.create("johndoe", IPerson.class, graph1, graph2);
+    	john = manager.getContext(graph1).create("johndoe", IPerson.class);
         john.setName("John Doe");
         john.setEmail("johndoe@example.com");        
         Calendar c = Calendar.getInstance();
@@ -47,14 +48,14 @@ public class ExampleIFaceTest extends RDFBeansTestBase {
         john.setNick(nicks);        
         john.setHomepage(new URI("http://johndoe.example.com"));
         
-        mary = manager.create("marysmith", IPerson.class, graph1, graph2); 
+        mary = manager.getContext(graph1).create("marysmith", IPerson.class); 
         mary.setName("Mary Smith");
         mary.setEmail("marysmith@example.com");
         Set<IPerson> maryKnows = new HashSet<IPerson>();        
         maryKnows.add(john); // recursive link
         mary.setKnows(maryKnows);
         
-        jim = manager.create("jimsmith", IPerson.class, graph1, graph2);
+        jim = manager.getContext(graph1).create("jimsmith", IPerson.class);
         jim.setName("Jim Smith");
         jim.setEmail("jimsmith@example.com");
         Set<IPerson> jimKnows = new HashSet<IPerson>();
@@ -70,15 +71,7 @@ public class ExampleIFaceTest extends RDFBeansTestBase {
 
     @Test
     public void testGetters() throws Exception { 
-    	_testGetters(graph1);
-    	_testGetters(graph2);
-    	
-    	john = manager.create("johndoe", IPerson.class, graph0);
-    	assertNull(john.getName());
-    }
-    
-    private void _testGetters(Resource graph)  throws Exception {
-    	john = manager.create("johndoe", IPerson.class, graph);
+    	john = manager.getContext(graph1).create("johndoe", IPerson.class);
     	assertEquals(john.getName(), "John Doe");
     	assertEquals(john.getEmail(), "johndoe@example.com");    	
     	assertNotNull(john.getBirthday());
@@ -105,11 +98,18 @@ public class ExampleIFaceTest extends RDFBeansTestBase {
     		assertFalse(p.getKnows().isEmpty());
     		assertTrue(p.getKnows().contains(john));
     	}
+    	
+    	john = manager.create("johndoe", IPerson.class);
+    	assertNull(john.getName());
+    	
+    	john = manager.getContext(graph0).create("johndoe", IPerson.class);
+    	assertNull(john.getName());
     }
+    
     
     @Test
     public void testUpdate() throws Exception {
-    	john = manager.create("johndoe", IPerson.class, graph1);
+    	john = manager.getContext(graph1).create("johndoe", IPerson.class);
     	assertEquals(john.getName(), "John Doe");
     	john.setName("John Doe II");
     	assertEquals(john.getName(), "John Doe II");
@@ -118,11 +118,11 @@ public class ExampleIFaceTest extends RDFBeansTestBase {
     	assertEquals(john.getNick(1), "johnnydoeII");
     	assertTrue(Arrays.equals(john.getNick(), new String[] {"johndoe", "johnnydoeII", "JohnnyTheTerrible"}));
     	
-    	john = manager.create("johndoe", IPerson.class, graph2);
-    	// this instance should be untouched
-    	assertEquals(john.getName(), "John Doe");
-    	assertEquals(john.getNick(1), "johnnydoe");
-    	assertTrue(Arrays.equals(john.getNick(), new String[] {"johndoe", "johnnydoe", "JohnnyTheTerrible"}));
+    	john = manager.create("johndoe", IPerson.class);
+    	assertNull(john.getName());
+    	
+    	john = manager.getContext(graph0).create("johndoe", IPerson.class);
+    	assertNull(john.getName());
     }
    
 }
