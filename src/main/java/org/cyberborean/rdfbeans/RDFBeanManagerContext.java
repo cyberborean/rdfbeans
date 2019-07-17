@@ -305,7 +305,7 @@ public class RDFBeanManagerContext {
 	 * @throws RepositoryException
 	 */
 	public boolean isResourceExist(Resource r) throws RepositoryException {
-		return hasStatement(r, null, null, (IRI)context);
+		return hasStatement(r, null, null);
 	}
 
 	/**
@@ -325,13 +325,13 @@ public class RDFBeanManagerContext {
 	 *             If the class is not a valid RDFBean class
 	 * @throws RepositoryException
 	 */
-	public boolean isResourceExist(Resource r, Class rdfBeanClass, IRI context)
+	public boolean isResourceExist(Resource r, Class rdfBeanClass)
 			throws RDFBeanValidationException, RepositoryException {
 		RDFBeanInfo rbi = RDFBeanInfo.get(rdfBeanClass);
-		return hasStatement(r, RDF.TYPE, rbi.getRDFType(), context);
+		return hasStatement(r, RDF.TYPE, rbi.getRDFType());
 	}
 
-	private boolean hasStatement(Resource s, IRI p, Value o, Resource context) throws RepositoryException {
+	private boolean hasStatement(Resource s, IRI p, Value o) throws RepositoryException {
 		ReadWriteLock lock = lockKeeper.getLock(s);
 		lock.readLock().lock();
 		try {
