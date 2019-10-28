@@ -278,9 +278,41 @@ public class RDFBeanDelegator implements InvocationHandler {
 					result = value;
 				}
 			}
+			else {
+				result = checkPrimitiveTypeDefault(p.getPropertyType());
+			}
 		}
 		sts.close();
+				
 		return result;
+	}
+
+	private Object checkPrimitiveTypeDefault(Class<?> type) {
+		if (type.equals(int.class)) {
+			return Integer.valueOf(0);
+		}
+		if (type.equals(float.class)) {
+			return Float.valueOf(0.0f);
+		}
+		if (type.equals(double.class)) {
+			return Double.valueOf(0.0d);
+		}
+		if (type.equals(long.class)) {
+			return Long.valueOf(0L);
+		}
+		if (type.equals(short.class)) {
+			return Short.valueOf((short) 0);
+		}
+		if (type.equals(byte.class)) {
+			return Byte.valueOf((byte) 0);
+		}
+		if (type.equals(char.class)) {
+			return Character.valueOf('\u0000');
+		}
+		if (type.equals(boolean.class)) {
+			return Boolean.FALSE;
+		}		
+		return null;
 	}
 
 	@SuppressWarnings({
