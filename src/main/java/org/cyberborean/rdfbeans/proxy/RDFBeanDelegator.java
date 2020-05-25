@@ -414,6 +414,14 @@ public class RDFBeanDelegator implements InvocationHandler {
 				conn.remove((Resource)null, p.getUri(), subject, (IRI)context);
 			}
 			else {
+				if (value instanceof Collection && p.getContainerType() != ContainerType.NONE) {
+					// remove RDF container
+					RepositoryResult<Statement> stmts = conn.getStatements(subject, p.getUri(), null, (IRI)context);
+					while (stmts.hasNext()) {
+						Resource bNode = (Resource) stmts.next().getObject();
+						conn.remove(bNode, null, null, (IRI)context);
+					}
+				}
 				conn.remove(subject, p.getUri(), null, (IRI)context);
 			}
 					
