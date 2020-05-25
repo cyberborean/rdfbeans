@@ -5,7 +5,7 @@ package org.cyberborean.rdfbeans.exceptions;
  * 
  * 
  */
-public class RDFBeanException extends Exception {
+public class RDFBeanException extends RuntimeException {
 
     /**
      * @param string

@@ -4,6 +4,7 @@ import java.beans.IndexedPropertyDescriptor;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.AbstractList;
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -520,6 +521,7 @@ public class RDFBeanDelegator implements InvocationHandler {
 		}
 		// Check if another RDFBean
 		if (RDFBeanInfo.isRdfBean(value)) {
+			checkIfTheSameContext(value);
 			RDFBeanInfo rbi = RDFBeanInfo.get(value.getClass());
 			if (rbi.getSubjectProperty() == null) {
 				throw new RDFBeanException("RDFSubject property is not declared in " + value.getClass().getName() + " class or its interfaces");
@@ -538,7 +540,15 @@ public class RDFBeanDelegator implements InvocationHandler {
 		throw new RDFBeanException("Unexpected value to set: " + value);
 	}
 	
-	
+	private void checkIfTheSameContext(Object value) {
+		if (Proxy.isProxyClass(value.getClass())) {
+			InvocationHandler h = Proxy.getInvocationHandler(value);
+			if (h instanceof RDFBeanDelegator && (context != ((RDFBeanDelegator)h).context)) {
+				throw new RDFBeanException("The value must be in the same RDF context (was " + ((RDFBeanDelegator)h).context.stringValue() + ")");
+			}
+		}
+	}
+
 	private void fireObjectPropertyChanged(Object object, IRI property, Object newValue) {
 		for (ProxyListener l : rdfBeanManagerContext.getProxyListeners()) {
 			l.objectPropertyChanged(object, property, newValue);
