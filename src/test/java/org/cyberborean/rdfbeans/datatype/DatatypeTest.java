@@ -36,7 +36,7 @@ public class DatatypeTest extends RDFBeansTestBase {
     	object.setShortValue(Short.MAX_VALUE);
     	object.setDateValue(new Date());
     	object.setUriValue(URI.create("http://rdfbeans.sourceforge.net"));
-    	object.setExternalURI(URI.create("https://rdfbeans.sourceforge.net"));
+    	object.setExternalURI(URI.create("http://rdfbeans.sourceforge.net/usage.html"));
     	int[] array = new int[] {0, 1, 2, 3, 4};
     	object.setArrayValue(array);
         object.setListValue(Arrays.asList(new Object[] {"a", "b", "c", "d"}));
@@ -78,6 +78,5 @@ public class DatatypeTest extends RDFBeansTestBase {
     	while (s1.hasNext() && s2.hasNext()) {
     		assertEquals(s1.next(), s2.next());
     	}
-		super.dumpRepository();
     }
 }

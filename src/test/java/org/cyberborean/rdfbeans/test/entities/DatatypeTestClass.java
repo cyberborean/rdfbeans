@@ -100,7 +100,7 @@ public class DatatypeTestClass {
 		return uriValue;
 	}
 
-	@RDF(value = "http://cyberborean.org/rdfbeans/2.0/test/datatype/external", internal = false)
+	@RDF(value = "http://cyberborean.org/rdfbeans/2.0/test/datatype/externalUri", internal = false)
 	public java.net.URI getExternalURI() {
 		return externalURI;
 	}

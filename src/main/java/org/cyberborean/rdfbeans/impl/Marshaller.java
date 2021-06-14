@@ -168,10 +168,10 @@ public class Marshaller {
 						// Single value
 						Value object = toRdf(conn, value, resourceCache, context);
 						if (object != null) {
+							if ( value instanceof java.net.URI && !p.isInternalUri()) {
+								object =conn.getValueFactory().createLiteral(value.toString(), conn.getValueFactory().createIRI("http://www.w3.org/2001/XMLSchema#anyURI"));
+							}
 							if (p.isInversionOfProperty()) {
-								if ( value instanceof java.net.URI && !p.isInternalUri()) {
-									object =conn.getValueFactory().createLiteral(value.toString(), conn.getValueFactory().createIRI("http://www.w3.org/2001/XMLSchema#anyURI"));
-								}
 								if (object instanceof Resource) {
 									ReadWriteLock invLock = null;
 									if (!object.equals(subject)) {
