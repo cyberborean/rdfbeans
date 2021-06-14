@@ -1,5 +1,6 @@
 package org.cyberborean.rdfbeans.test.entities;
 
+import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +32,7 @@ public class DatatypeTestClass {
 	short shortValue;
 	Date dateValue;
 	java.net.URI uriValue;
+	java.net.URI externalURI;
 	
 	int[] arrayValue;
 	List<Object> listValue;
@@ -97,7 +99,12 @@ public class DatatypeTestClass {
 	public java.net.URI getUriValue() {
 		return uriValue;
 	}
-	
+
+	@RDF(value = "http://cyberborean.org/rdfbeans/2.0/test/datatype/external", internal = false)
+	public java.net.URI getExternalURI() {
+		return externalURI;
+	}
+
 	@RDF("http://cyberborean.org/rdfbeans/2.0/test/datatype/array")
 	@RDFContainer(ContainerType.SEQ)
 	public int[] getArrayValue() {
@@ -185,5 +192,7 @@ public class DatatypeTestClass {
 		this.sortedSetValue = sortedSetValue;
 	}
 	public void setHeadTailList(List<Object> headTailList) { this.headTailList = headTailList; }
-
+	public void setExternalURI(URI externalURI) {
+		this.externalURI = externalURI;
+	}
 }
