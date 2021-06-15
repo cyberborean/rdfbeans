@@ -31,6 +31,7 @@ public class DatatypeTestClass {
 	short shortValue;
 	Date dateValue;
 	java.net.URI uriValue;
+	java.net.URI externalURI;
 	
 	int[] arrayValue;
 	List<Object> listValue;
@@ -97,7 +98,12 @@ public class DatatypeTestClass {
 	public java.net.URI getUriValue() {
 		return uriValue;
 	}
-	
+
+	@RDF(value = "http://cyberborean.org/rdfbeans/2.0/test/datatype/externalUri", internal = false)
+	public java.net.URI getExternalURI() {
+		return externalURI;
+	}
+
 	@RDF("http://cyberborean.org/rdfbeans/2.0/test/datatype/array")
 	@RDFContainer(ContainerType.SEQ)
 	public int[] getArrayValue() {
@@ -186,4 +192,7 @@ public class DatatypeTestClass {
 	}
 	public void setHeadTailList(List<Object> headTailList) { this.headTailList = headTailList; }
 
+	public void setExternalURI(java.net.URI externalURI) {
+		this.externalURI = externalURI;
+	}
 }

@@ -60,4 +60,6 @@ public @interface RDF {
 	String value() default "";
 	
 	String inverseOf() default "";
+
+	boolean internal() default true;
 }
