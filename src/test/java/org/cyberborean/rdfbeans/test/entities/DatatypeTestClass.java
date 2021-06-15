@@ -1,6 +1,5 @@
 package org.cyberborean.rdfbeans.test.entities;
 
-import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -192,7 +191,8 @@ public class DatatypeTestClass {
 		this.sortedSetValue = sortedSetValue;
 	}
 	public void setHeadTailList(List<Object> headTailList) { this.headTailList = headTailList; }
-	public void setExternalURI(URI externalURI) {
+
+	public void setExternalURI(java.net.URI externalURI) {
 		this.externalURI = externalURI;
 	}
 }

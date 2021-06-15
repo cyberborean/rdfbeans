@@ -79,4 +79,5 @@ public class DatatypeTest extends RDFBeansTestBase {
     		assertEquals(s1.next(), s2.next());
     	}
     }
+
 }
