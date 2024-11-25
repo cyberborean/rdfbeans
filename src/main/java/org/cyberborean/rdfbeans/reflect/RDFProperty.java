@@ -15,7 +15,7 @@ public class RDFProperty extends AbstractRDFBeanProperty {
 	private IRI uri;
 	private RDFContainer.ContainerType containerType = ContainerType.NONE;
 	private RDFBeanInfo beanInfo;
-
+	private boolean internalUri = true;
 	/**
 	 * @param propertyDescriptor
 	 * @param rdfBeanInfo
@@ -63,6 +63,7 @@ public class RDFProperty extends AbstractRDFBeanProperty {
 							+ propertyDescriptor.getName()
 							+ "'s getter or setter", beanInfo.getRDFBeanClass());
 		}
+		internalUri = annotation.internal();
 		try {
 			uri = SimpleValueFactory.getInstance().createIRI(beanInfo.createUriString(uriValue));
 		}
@@ -74,6 +75,9 @@ public class RDFProperty extends AbstractRDFBeanProperty {
 							+ " getter or setter must be an absolute valid URI: "
 							+ uriValue, beanInfo.getRDFBeanClass(), iae);
 		}
+	}
+	public boolean isInternalUri() {
+		return internalUri;
 	}
 
 	public boolean isInversionOfProperty() {
